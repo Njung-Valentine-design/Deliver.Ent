@@ -659,6 +659,85 @@ canvas.metric-spark{border-radius:3px;display:block}
 }
 /* choice-type badges removed v22 */
 
+/* ══ AI AGENT ═══════════════════════════════════════════ */
+.agent-bar{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:linear-gradient(135deg,rgba(100,220,255,.06),rgba(150,100,255,.06));
+  border:1px solid rgba(100,200,255,.2);border-radius:10px;
+  margin-bottom:10px;flex-wrap:wrap;
+}
+.agent-mode-btn{
+  padding:5px 12px;border-radius:20px;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;
+  transition:all .2s;
+}
+.agent-mode-btn.off{background:rgba(255,255,255,.06);color:var(--muted)}
+.agent-mode-btn.watch{background:rgba(100,220,255,.15);color:#64dcff;border:1px solid rgba(100,220,255,.3)}
+.agent-mode-btn.collab{background:rgba(150,100,255,.15);color:#9664ff;border:1px solid rgba(150,100,255,.3)}
+.agent-speed-btn{
+  padding:4px 9px;border-radius:16px;font-size:10px;cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid var(--line2);color:var(--muted);
+  transition:all .2s;
+}
+.agent-speed-btn.active{background:rgba(244,196,48,.15);color:var(--gold);border-color:rgba(244,196,48,.3)}
+.agent-thinking{
+  background:rgba(10,16,32,.95);border:1px solid rgba(100,200,255,.25);
+  border-radius:12px;padding:14px 16px;margin-bottom:12px;
+  animation:agentFadeIn .3s ease;
+}
+.agent-thinking-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+}
+.agent-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#64dcff,#9664ff);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+.agent-name{font-size:11px;font-weight:700;color:#64dcff;letter-spacing:.05em}
+.agent-role{font-size:10px;color:var(--muted)}
+.agent-reasoning{
+  font-size:12px;color:var(--text);line-height:1.6;
+  border-left:2px solid rgba(100,200,255,.3);padding-left:10px;margin-bottom:10px;
+}
+.agent-choice-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;
+  background:rgba(100,220,255,.1);color:#64dcff;
+  border:1px solid rgba(100,220,255,.3);
+}
+.agent-confidence{
+  font-size:10px;color:var(--muted);margin-top:6px;
+}
+.agent-suggest-banner{
+  background:rgba(150,100,255,.08);border:1px solid rgba(150,100,255,.25);
+  border-radius:10px;padding:10px 14px;margin-bottom:10px;
+}
+.agent-suggest-title{font-size:10px;color:#9664ff;font-weight:700;letter-spacing:.08em;margin-bottom:6px}
+.agent-suggest-text{font-size:12px;color:var(--text);line-height:1.6}
+.agent-typing-dots span{
+  display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:#64dcff;margin:0 2px;animation:agentDot 1.2s infinite;
+}
+.agent-typing-dots span:nth-child(2){animation-delay:.2s}
+.agent-typing-dots span:nth-child(3){animation-delay:.4s}
+.choice.agent-highlighted{
+  border-color:#64dcff !important;
+  box-shadow:0 0 0 2px rgba(100,220,255,.2) !important;
+}
+.choice.agent-override{opacity:1 !important}
+@keyframes agentFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes agentDot{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+.agent-log-entry{
+  font-size:11px;padding:6px 10px;border-bottom:1px solid var(--line2);
+  display:flex;gap:8px;align-items:flex-start;
+}
+.agent-log-turn{color:var(--gold);font-weight:700;white-space:nowrap;min-width:42px}
+.agent-log-text{color:var(--muted);line-height:1.5;flex:1}
+.agent-log-choice{
+  font-weight:700;color:#64dcff;white-space:nowrap;
+}
+
 /* ══════════════════════════════════════════════════════
    STAKEHOLDER PORTRAITS — AI Response UI
 ══════════════════════════════════════════════════════ */
@@ -1670,6 +1749,235 @@ footer.auth2-footer {
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- ══ SUPABASE SDK ══════════════════════════════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+  // ══════════════════════════════════════════════════════════════
+  // SUPABASE CONFIGURATION
+  // Replace these two values with your project's URL and anon key
+  // from https://supabase.com → Settings → API
+  // ══════════════════════════════════════════════════════════════
+  const SUPABASE_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xyzabc.supabase.co
+  const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+
+  /*
+  ════════════════════════════════════════════════════════════════
+  SUPABASE SETUP GUIDE — run this SQL in your Supabase SQL editor
+  Dashboard → SQL Editor → New Query → paste and run
+  ════════════════════════════════════════════════════════════════
+
+  -- 1. Profiles table (one row per user)
+  CREATE TABLE profiles (
+    id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    username     TEXT UNIQUE NOT NULL,
+    display_name TEXT,
+    created_at   TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- 2. Saves table (one row per user, upserted on every save)
+  CREATE TABLE saves (
+    user_id       UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    username      TEXT,
+    game_state    JSONB,
+    achievements  JSONB DEFAULT '{}',
+    score         INTEGER DEFAULT 0,
+    level_reached INTEGER DEFAULT 1,
+    saved_at      TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- 3. Global leaderboard (one row per user, upserted on score update)
+  CREATE TABLE leaderboard (
+    user_id    UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    username   TEXT,
+    score      INTEGER DEFAULT 0,
+    level      INTEGER DEFAULT 1,
+    industry   TEXT DEFAULT '',
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  -- 4. Row Level Security — users can only read/write their own data
+  ALTER TABLE profiles  ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE saves     ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE leaderboard ENABLE ROW LEVEL SECURITY;
+
+  CREATE POLICY "Users manage own profile"  ON profiles  FOR ALL USING (auth.uid() = id);
+  CREATE POLICY "Users manage own save"     ON saves     FOR ALL USING (auth.uid() = user_id);
+  CREATE POLICY "Users manage own score"    ON leaderboard FOR ALL USING (auth.uid() = user_id);
+  CREATE POLICY "Anyone reads leaderboard"  ON leaderboard FOR SELECT USING (true);
+
+  ════════════════════════════════════════════════════════════════
+  THEN: replace SUPABASE_URL and SUPABASE_ANON_KEY above with
+  your project values from: Supabase → Settings → API
+  ════════════════════════════════════════════════════════════════
+  */
+
+  // ── Detect if Supabase is configured ──────────────────────────
+  const _sbConfigured = SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON !== 'YOUR_SUPABASE_ANON_KEY';
+  const _sb = _sbConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+  // ══════════════════════════════════════════════════════════════
+  // CLOUD STORE — replaces / wraps the localStorage Store
+  // All game code stays the same. This layer intercepts calls.
+  // ══════════════════════════════════════════════════════════════
+  const CloudStore = {
+    _session: null,
+    _userId:  null,
+
+    // ── Called once on boot ─────────────────────────────────────
+    async init() {
+      if (!_sb) { this._log('Supabase not configured — running offline'); return; }
+      try {
+        const { data: { session } } = await _sb.auth.getSession();
+        if (session) {
+          this._session = session;
+          this._userId  = session.user.id;
+          this._log('Session restored for ' + session.user.email);
+          await this.pullToLocal();   // sync cloud → localStorage on boot
+        }
+        // Listen for auth state changes (login / logout)
+        _sb.auth.onAuthStateChange(async (event, session) => {
+          this._session = session;
+          this._userId  = session?.user?.id || null;
+          if (event === 'SIGNED_IN') await this.pullToLocal();
+          if (event === 'SIGNED_OUT') this._userId = null;
+        });
+      } catch(e) { this._log('Init error: ' + e.message); }
+    },
+
+    // ── Register with email + password ─────────────────────────
+    async register(email, password, displayName) {
+      if (!_sb) return { error: 'Supabase not configured' };
+      try {
+        const { data, error } = await _sb.auth.signUp({ email, password,
+          options: { data: { display_name: displayName } }
+        });
+        if (error) return { error: error.message };
+        this._session = data.session;
+        this._userId  = data.user?.id;
+        // Create profile row
+        if (data.user) {
+          await _sb.from('profiles').upsert({
+            id: data.user.id,
+            username: email.split('@')[0].toLowerCase(),
+            display_name: displayName,
+            created_at: new Date().toISOString()
+          });
+        }
+        return { ok: true, user: data.user };
+      } catch(e) { return { error: e.message }; }
+    },
+
+    // ── Login ───────────────────────────────────────────────────
+    async login(email, password) {
+      if (!_sb) return { error: 'Supabase not configured' };
+      try {
+        const { data, error } = await _sb.auth.signInWithPassword({ email, password });
+        if (error) return { error: error.message };
+        this._session = data.session;
+        this._userId  = data.user.id;
+        await this.pullToLocal();
+        return { ok: true };
+      } catch(e) { return { error: e.message }; }
+    },
+
+    // ── Logout ──────────────────────────────────────────────────
+    async logout() {
+      if (_sb) await _sb.auth.signOut();
+      this._session = null;
+      this._userId  = null;
+    },
+
+    // ── Save game state to Supabase ─────────────────────────────
+    async pushSave(db) {
+      if (!_sb || !this._userId) return;   // offline fallback handled by Store.save()
+      try {
+        const user  = db.users?.[db.current];
+        if (!user) return;
+        // Trim save payload (same as Store.save does)
+        const gameState = user.game ? JSON.parse(JSON.stringify(user.game)) : null;
+        if (gameState?.history) gameState.history = gameState.history.slice(0, 20);
+        if (gameState?.emails)  gameState.emails  = gameState.emails.slice(0, 6);
+        if (gameState?.raid)    gameState.raid    = gameState.raid.slice(0, 10);
+
+        await _sb.from('saves').upsert({
+          user_id:       this._userId,
+          username:      db.current,
+          game_state:    gameState,
+          achievements:  user.achievements || {},
+          score:         user.score || 0,
+          level_reached: gameState?.level || 1,
+          saved_at:      new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+        // Push leaderboard entry
+        if (gameState && user.score > 0) {
+          await _sb.from('leaderboard').upsert({
+            user_id:    this._userId,
+            username:   user.name || db.current,
+            score:      user.score,
+            level:      gameState.level || 1,
+            industry:   gameState.industry || '',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+        }
+      } catch(e) { this._log('Push save error: ' + e.message); }
+    },
+
+    // ── Load game state from Supabase → merge into localStorage ─
+    async pullToLocal() {
+      if (!_sb || !this._userId) return;
+      try {
+        const { data, error } = await _sb.from('saves').select('*').eq('user_id', this._userId).single();
+        if (error || !data) return;
+        // Merge cloud data into local DB
+        const local = JSON.parse(localStorage.getItem('deliver_v2__') || '{"users":{},"current":null,"leaderboard":[]}');
+        const uname = data.username;
+        if (!local.users[uname]) local.users[uname] = { history:[], achievements:{} };
+        local.users[uname].game         = data.game_state;
+        local.users[uname].achievements = data.achievements || {};
+        local.users[uname].score        = data.score || 0;
+        local.current = uname;
+        // Persist merged data locally
+        localStorage.setItem('deliver_v2__', JSON.stringify(local));
+        this._log('Cloud save loaded for ' + uname);
+      } catch(e) { this._log('Pull error: ' + e.message); }
+    },
+
+    // ── Fetch global leaderboard ─────────────────────────────────
+    async getLeaderboard(limit = 20) {
+      if (!_sb) return [];
+      try {
+        const { data } = await _sb.from('leaderboard')
+          .select('username, score, level, industry, updated_at')
+          .order('score', { ascending: false })
+          .limit(limit);
+        return data || [];
+      } catch(e) { return []; }
+    },
+
+    // ── Check if online ─────────────────────────────────────────
+    isOnline() { return _sbConfigured && !!this._session; },
+
+    _log(msg) { console.log('[CloudStore]', msg); }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // PATCH Store.save — push to cloud after every local save
+  // ══════════════════════════════════════════════════════════════
+  // This runs AFTER the game's Store object is defined (at boot)
+  document.addEventListener('DOMContentLoaded', () => {
+    CloudStore.init();
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // PATCH Auth — intercept register/login/logout
+  // Falls back to original localStorage auth if Supabase not configured
+  // ══════════════════════════════════════════════════════════════
+  // We wrap at runtime after Auth is defined — see bottom of file
+
+  </script>
+
 </head>
 <body>
 
@@ -1904,12 +2212,14 @@ footer.auth2-footer {
           <span class="topbar-title" style="word-spacing:-2px">DELIVER</span>
           <span id="levelBadge" class="pill" style="margin-left:6px"></span>
           <span id="offlineBadge" style="display:none;font-size:10px;color:var(--muted);border:1px solid var(--line2);padding:3px 8px;border-radius:999px;margin-left:4px">Offline</span>
+          <span id="cloudBadge" style="display:none;font-size:10px;color:#64dcff;border:1px solid rgba(100,220,255,.3);padding:3px 8px;border-radius:999px;margin-left:4px">☁️ Cloud</span>
         </div>
         <div id="roleLine" class="soft" style="margin-top:3px;font-size:11px;letter-spacing:.3px"></div>
       </div>
       <div class="row wrap-btns">
         <button class="btn ghost small tooltip" data-tip="Toggle sound" onclick="Sound.toggle()">🔊</button>
         <button class="btn ghost small tooltip" data-tip="Toggle music" onclick="Beat.toggle()" style="margin-left:2px">🎵</button>
+        <button id="agentModeBtn" class="btn ghost small" onclick="Agent.cycleMode()" style="display:none" title="AI Agent mode">🤖 AI</button>
         <button class="btn ghost small" onclick="Game.save();Sound.play('save');UI.toast('✓ Saved')">Save</button>
         <button class="btn ghost small" onclick="UI.openModal('profileModal');Render.profile()">Profile</button>
         <button class="btn red small" onclick="Game.exit()">Exit</button>
@@ -1934,9 +2244,22 @@ footer.auth2-footer {
 <div id="aboutModal" class="modal">
   <div class="card" style="max-width:440px;margin:80px auto;text-align:center;padding:36px">
     <p style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);letter-spacing:4px;margin-bottom:8px">DELIVER</p>
-    <p class="soft" style="font-size:13px;margin-bottom:28px;line-height:1.7">Enterprise Project Leadership Simulation.<br>16 industries · 10 career levels · 9 live metrics.<br>Developed by Njung V. Zuh.</p>
+    <p class="soft" style="font-size:13px;margin-bottom:20px;line-height:1.7">Enterprise Project Leadership Simulation.<br>16 industries · 10 career levels · 9 live metrics.<br>Developed by Njung V. Zuh.</p>
+    <div id="cloudStatusPanel" style="text-align:left;background:rgba(100,220,255,.05);border:1px solid rgba(100,220,255,.2);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:12px">
+      <p style="font-weight:700;color:#64dcff;margin:0 0 6px">☁️ Cloud Sync Status</p>
+      <p id="cloudStatusText" style="color:var(--muted);margin:0;line-height:1.6">Not configured — running in offline mode. Progress saves to this browser only.</p>
+      <p style="color:var(--muted);margin:6px 0 0;font-size:11px">To enable cloud sync: add your Supabase URL and anon key at the top of the script.</p>
+    </div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="btn primary" onclick="UI.closeModal('aboutModal');UI.openModal('aboutFullModal')">📖 About the Game →</button>
+      <button class="btn primary" onclick="UI.closeModal('aboutModal');UI.openModal('aboutFullModal');
+      const cst=document.getElementById('cloudStatusText');
+      if(cst){
+        if(typeof CloudStore!=='undefined'&&CloudStore.isOnline())
+          cst.textContent='Connected — progress syncs automatically across devices.';
+        else if(typeof CloudStore!=='undefined'&&_sbConfigured)
+          cst.textContent='Configured but not signed in — sign in to enable cloud sync.';
+        else cst.textContent='Not configured — running in offline mode. Progress saves to this browser only.';
+      }">📖 About the Game →</button>
       <button class="btn ghost" onclick="UI.closeModal('aboutModal');UI.openModal('authorModal')">👤 About the Author →</button>
       <button class="btn ghost small" style="margin-top:4px" onclick="UI.closeModal('aboutModal')">Close</button>
     </div>
@@ -2017,10 +2340,10 @@ footer.auth2-footer {
   <div class="card" style="max-width:620px;margin:60px auto">
     <div class="between" style="margin-bottom:14px">
       <h2 id="levelStartTitle" style="font-family:'Syne',sans-serif;letter-spacing:2px">Level Started</h2>
-      <button class="btn ghost small" onclick="UI.closeModal('levelStartModal')">Begin</button>
+      <button class="btn ghost small" onclick="UI.closeModal('levelStartModal');if(typeof Agent!=='undefined')Agent.resume()">Begin</button>
     </div>
     <div id="levelStartContent"></div>
-    <button class="btn primary" style="width:100%;margin-top:16px" onclick="UI.closeModal('levelStartModal')">Start This Level →</button>
+    <button class="btn primary" style="width:100%;margin-top:16px" onclick="UI.closeModal('levelStartModal');if(typeof Agent!=='undefined')Agent.resume()">Start This Level →</button>
   </div>
 </div>
 
@@ -2369,7 +2692,6 @@ const Store={
       if(s.users&&s.current&&s.users[s.current]?.game?.history){
         s.users[s.current].game.history=s.users[s.current].game.history.slice(0,20);
       }
-      // Trim ephemeral arrays before saving to reduce payload
       if(s.users&&s.current&&s.users[s.current]?.game){
         const g=s.users[s.current].game;
         if(g.emails&&g.emails.length>6)g.emails=g.emails.slice(0,6);
@@ -2377,6 +2699,10 @@ const Store={
       }
       localStorage.setItem(this.k,JSON.stringify(s));
       const b=document.getElementById('offlineBadge');if(b)b.style.display='none';
+      // Push to Supabase cloud (fire-and-forget, non-blocking)
+      if(typeof CloudStore!=='undefined'&&CloudStore.isOnline()){
+        CloudStore.pushSave(s).catch(()=>{});
+      }
     }catch(e){
       const b=document.getElementById('offlineBadge');if(b)b.style.display='inline';
       console.warn('Save failed:',e);
@@ -2390,16 +2716,16 @@ let STATE=null,SELECT={industry:null,method:null},ACTIVE_TAB='situation';
 
 // ── Static Data ────────────────────────────────────────────
 const ARC=[
-  {level:1,title:'Associate Project Coordinator',industry:'Hospitality',company:'Meridian Hotel Group',salary:[45000,58000],budget:[50000,200000],accent:'#f4c430',turnLimit:15,badge:'🎓',context:'You are new. The budget is small. But the politics are real.'},
-  {level:2,title:'Project Coordinator',industry:'Hospitality',company:'Meridian Hotel Group',salary:[60000,78000],budget:[200000,800000],accent:'#f4c430',turnLimit:14,badge:'📋',context:'You have proven you can manage scope. Now prove you can manage people.'},
-  {level:3,title:'Junior Project Manager',industry:'Retail & E-Commerce',company:'Vantage Retail Corp',salary:[82000,105000],budget:[500000,2500000],accent:'#10b981',turnLimit:13,badge:'🛒',context:'New industry. New stakeholders. No institutional knowledge. Adapt fast.'},
-  {level:4,title:'Project Manager',industry:'Retail & E-Commerce',company:'Vantage Retail Corp',salary:[100000,140000],budget:[2000000,6000000],accent:'#10b981',turnLimit:12,badge:'📦',context:'The budget is seven figures. Delivery failures are now board-visible.'},
-  {level:5,title:'Senior Project Manager',industry:'Banking & Finance',company:'Crestline Bank',salary:[140000,195000],budget:[8000000,25000000],accent:'#3b82f6',turnLimit:14,badge:'🏦',context:'Regulated environment. Compliance is not optional. Audit is always watching.'},
-  {level:6,title:'Program Manager',industry:'Healthcare',company:'NovaCare Health Systems',salary:[195000,265000],budget:[15000000,60000000],accent:'#ec4899',turnLimit:13,badge:'🏥',context:'Patient safety is non-negotiable. Every decision you make carries clinical risk.'},
-  {level:7,title:'PMO Director',industry:'Government',company:'Dept. Infrastructure & Transport',salary:[275000,360000],budget:[150000000,600000000],accent:'#8b5cf6',turnLimit:12,badge:'🏛️',context:'Public money. Public scrutiny. Political exposure. Manage all three or fail publicly.'},
-  {level:8,title:'Portfolio Director',industry:'Energy & Utilities',company:'Solara Energy Group',salary:[380000,520000],budget:[600000000,2500000000],accent:'#f97316',turnLimit:10,badge:'⚡',context:'You own a portfolio, not a project. Performance at this level shapes careers — yours and others.'},
-  {level:9,title:'Chief Transformation Officer',industry:'Airlines & Aviation',company:'Apex Airlines',salary:[580000,820000],budget:[1500000000,8000000000],accent:'#06b6d4',turnLimit:10,badge:'✈️',context:'Transformation at scale. Union, safety, and regulators in every room. One wrong call makes headlines.'},
-  {level:10,title:'Chief Delivery Officer',industry:'Manufacturing',company:'Kronos Industrial Systems',salary:[900000,1400000],budget:[3000000000,12000000000],accent:'#e11d48',turnLimit:10,badge:'🏭',context:'Board. Global operations. Billions at stake. This is where enterprise execution is decided.'}
+  {level:1,title:'Associate Project Coordinator',industry:'Hospitality',company:'Meridian Hotel Group',salary:[45000,58000],budget:[50000,200000],accent:'#f4c430',turnLimit:18,badge:'🎓',context:'You are new. The budget is small. But the politics are real.'},
+  {level:2,title:'Project Coordinator',industry:'Hospitality',company:'Meridian Hotel Group',salary:[60000,78000],budget:[200000,800000],accent:'#f4c430',turnLimit:17,badge:'📋',context:'You have proven you can manage scope. Now prove you can manage people.'},
+  {level:3,title:'Junior Project Manager',industry:'Retail & E-Commerce',company:'Vantage Retail Corp',salary:[82000,105000],budget:[500000,2500000],accent:'#10b981',turnLimit:17,badge:'🛒',context:'New industry. New stakeholders. No institutional knowledge. Adapt fast.'},
+  {level:4,title:'Project Manager',industry:'Retail & E-Commerce',company:'Vantage Retail Corp',salary:[100000,140000],budget:[2000000,6000000],accent:'#10b981',turnLimit:16,badge:'📦',context:'The budget is seven figures. Delivery failures are now board-visible.'},
+  {level:5,title:'Senior Project Manager',industry:'Banking & Finance',company:'Crestline Bank',salary:[140000,195000],budget:[8000000,25000000],accent:'#3b82f6',turnLimit:16,badge:'🏦',context:'Regulated environment. Compliance is not optional. Audit is always watching.'},
+  {level:6,title:'Program Manager',industry:'Healthcare',company:'NovaCare Health Systems',salary:[195000,265000],budget:[15000000,60000000],accent:'#ec4899',turnLimit:15,badge:'🏥',context:'Patient safety is non-negotiable. Every decision you make carries clinical risk.'},
+  {level:7,title:'PMO Director',industry:'Government',company:'Dept. Infrastructure & Transport',salary:[275000,360000],budget:[150000000,600000000],accent:'#8b5cf6',turnLimit:14,badge:'🏛️',context:'Public money. Public scrutiny. Political exposure. Manage all three or fail publicly.'},
+  {level:8,title:'Portfolio Director',industry:'Energy & Utilities',company:'Solara Energy Group',salary:[380000,520000],budget:[600000000,2500000000],accent:'#f97316',turnLimit:13,badge:'⚡',context:'You own a portfolio, not a project. Performance at this level shapes careers — yours and others.'},
+  {level:9,title:'Chief Transformation Officer',industry:'Airlines & Aviation',company:'Apex Airlines',salary:[580000,820000],budget:[1500000000,8000000000],accent:'#06b6d4',turnLimit:13,badge:'✈️',context:'Transformation at scale. Union, safety, and regulators in every room. One wrong call makes headlines.'},
+  {level:10,title:'Chief Delivery Officer',industry:'Manufacturing',company:'Kronos Industrial Systems',salary:[900000,1400000],budget:[3000000000,12000000000],accent:'#e11d48',turnLimit:12,badge:'🏭',context:'Board. Global operations. Billions at stake. This is where enterprise execution is decided.'}
 ];
 // ── Career Entry Positions ──────────────────────────────────────
 // Each maps to an ARC level. Player picks their real-world seniority.
@@ -2889,11 +3215,34 @@ const INDUSTRY_OPENERS={
       'Ground investigation results show unexpected rock strata — the foundation design may need reworking.',
       'The HSE inspector arrived unannounced this morning and has flagged three open items.',
       'The tower crane slew ring is showing wear — the equipment supplier says it needs 4 days off-hire.',
+      'The principal contractor has submitted a delay notice — they are claiming 14 days of excusable delay.',
+      'A design coordination clash between the structural and M&E packages has been discovered at Level 6.',
+      'The concrete pour scheduled for tomorrow has been deferred — mix design approvals are outstanding.',
+      'The architect has issued a revised drawing that changes the external cladding system at this late stage.',
+      'A neighbour has filed a formal objection to the working hours — the planning authority is investigating.',
+      'The main contractor\'s programme shows float eroding — they are now on the critical path three weeks early.',
+      'A utility diversion is running 6 weeks behind schedule and threatens the entire substructure sequence.',
+      'The specialist subcontractor for the curtain walling has gone into administration mid-fabrication.',
+      'Fire stopping inspections have revealed non-compliant installations across four floors — remediation required.',
+      'The structural steel fabricator has flagged a material certification issue that halts erection.',
+      'A latent defect in the piling works has been identified — the structural engineer is reviewing the implications.',
+      'The site manager has reported two near-miss incidents this week — the safety culture is under scrutiny.',
+      'Contaminated material has been discovered during excavation — unexpected remediation cost and programme impact.',
+      'The client has requested a design change that affects the critical path by an estimated three weeks.',
+      'The logistic management plan needs revision — site access conflicts are causing delivery delays.',
+      'Temporary works design approval is outstanding and is blocking the next phase of formwork.',
+      'A mechanical breakdown of the primary hoist has delayed floor-by-floor material distribution.',
+      'A surveyor\'s report has identified a boundary dispute that could affect the east elevation works.',
+      'The cost consultant has issued a cost overrun warning — the contingency is now 60% consumed.',
+      'Handover inspections have generated a snagging list three times longer than anticipated.',
     ],
     crisis:[
       '💥 EMERGENCY: A partial scaffold collapse on Level 3. Two workers taken to hospital. Site stood down.',
       '⚠️ CRITICAL: Wind microburst warning issued — strand jack operation must be halted immediately.',
       '🚨 ALERT: Suspected gas leak in the excavation zone. Crew evacuated. Emergency services on-site.',
+      '🚧 PROHIBITION NOTICE: HSE has issued a prohibition notice — all works suspended pending inspection.',
+      '💀 FATALITY: A fatal incident has occurred on the upper floor. Police and HSE are on site.',
+      '🔴 EMERGENCY: A deep excavation has partially collapsed — workers are unaccounted for.',
     ]
   },
   banking:{
@@ -2903,11 +3252,34 @@ const INDUSTRY_OPENERS={
       'A key SME from the front office is being rotated out — their replacement has no context.',
       'The change management lead reports that adoption in the retail division is tracking at 42%.',
       'Finance has raised a query on three budget line items — they need supporting evidence by EOD.',
+      'The CRO has placed an informal hold on the next phase pending a data architecture review.',
+      'The vendor\'s SOC 2 certification has expired — the procurement team is raising a risk.',
+      'The internal audit team has selected this programme for a mid-delivery assurance review.',
+      'A front-office director is actively lobbying to descope the customer-facing module.',
+      'The change freeze window for core banking conflicts with the planned integration test date.',
+      'Regulators have issued new guidance that directly affects two programme workstreams.',
+      'The data migration rehearsal has revealed a 6% record duplication rate in the source system.',
+      'A senior sponsor has been moved to a different division — programme ownership is unclear.',
+      'Third-party penetration testing has identified a vulnerability in the new API gateway.',
+      'The model validation team has challenged the risk model embedded in the new underwriting workflow.',
+      'Business continuity planning has not been updated to reflect the new system architecture.',
+      'A parallel change programme has introduced conflicting data definitions — reconciliation is needed.',
+      'The UAT environment is unstable — testing is three weeks behind the approved schedule.',
+      'The outsourced development team has flagged scope ambiguity that is generating change requests.',
+      'The programme steering committee has not met for six weeks — governance cadence has broken down.',
+      'A whistleblower report has been submitted naming a team member for data handling misconduct.',
+      'The vendor has indicated that a key resource will roll off the programme in two weeks.',
+      'A legal hold on specific customer data has complicated the migration sequence.',
+      'The head of retail banking is dissatisfied with the testing approach and has escalated to the CEO.',
+      'Treasury has flagged a foreign currency exposure in the programme budget that was not stress-tested.',
     ],
     crisis:[
       '🚨 BREACH: A regulatory breach has been identified in the test environment. Legal is on the line.',
       '🔴 ALERT: A ransomware attack has encrypted a project server. IT is working the problem now.',
       '⚠️ CRITICAL: The data protection officer has placed a formal hold on the migration activity.',
+      '📉 AUDIT: The regulator has announced an unannounced inspection of the change programme.',
+      '🔒 FREEZE: A compliance emergency has triggered a system-wide change freeze — all deployment halted.',
+      '🚨 INCIDENT: A data breach affecting 14,000 customer records has been confirmed. Board notified.',
     ]
   },
   healthcare:{
@@ -2917,11 +3289,34 @@ const INDUSTRY_OPENERS={
       'The information governance team has identified a gap in the consent documentation process.',
       'The CMO wants a briefing before the steering committee — the agenda is already set.',
       'Patient records from the legacy system are not migrating cleanly — 14% error rate in testing.',
+      'A locum doctor is documenting patient outcomes differently from substantive staff — a data issue is emerging.',
+      'The pharmacy system interface has not been validated — medication administration workflows are at risk.',
+      'Three ward leads have asked to delay go-live citing inadequate training completion rates.',
+      'The CQC has indicated it will look at the digital transformation programme during its next inspection.',
+      'A patient advocacy group has written to the chief executive expressing concern about data handling.',
+      'The clinical coding team reports the new system is generating incorrect tariff codes — revenue at risk.',
+      'A neighbouring trust has gone live with the same system and is reporting significant teething issues.',
+      'The information governance officer has flagged that the system vendor\'s data processing agreement needs amendment.',
+      'A key clinical champion has resigned, removing the most trusted voice in the change programme.',
+      'Radiology has discovered that image transfer speeds are 40% slower on the new platform.',
+      'A planned downtime window for migration has been objected to by the emergency department.',
+      'The supplier has identified a defect in the medication reconciliation module that requires a patch.',
+      'Two integrated care board partners are not aligned on the data sharing protocol.',
+      'Nursing staff are reverting to paper processes during the system — the hybrid creates patient safety risk.',
+      'The digital maturity assessment has rated two wards as not ready for go-live.',
+      'A subject access request has exposed a gap in the audit trail functionality.',
+      'The pathology lab interface test has failed — results are not flowing through to the clinical portal.',
+      'A patient was discharged with incorrect medication following a system entry error during testing.',
+      'The mental health unit has raised specific data sensitivity concerns that require design changes.',
+      'Winter pressures are reducing training capacity — the agreed training plan is no longer achievable.',
     ],
     crisis:[
       '🚨 CRITICAL: A patient safety incident has been linked to the new system workflow. Ward 7 suspended.',
       '🔴 EMERGENCY: The privacy office has placed a formal hold — data handling breach suspected.',
       '⚠️ ALERT: The Care Quality Commission has arrived for an unannounced inspection.',
+      '🏥 PATIENT HARM: A serious incident report has been filed linking the system to a near-miss.',
+      '💊 MEDICATION ERROR: A batch of incorrect prescriptions traced to the new workflow. Pharmacist alerted.',
+      '🔒 DATA BREACH: Patient records accessed without authorisation. ICO notification window has started.',
     ]
   },
   government:{
@@ -2931,11 +3326,34 @@ const INDUSTRY_OPENERS={
       'The external gateway reviewer has rated the project amber and wants a corrective action plan.',
       'A departmental restructure has left the senior responsible owner role temporarily vacant.',
       'The public accounts committee has listed this programme in their upcoming scrutiny session.',
+      'The Cabinet Office has requested a revised business case following a machinery of government change.',
+      'A policy shift has altered the intended outcome of the programme mid-delivery.',
+      'The National Audit Office has requested access to programme documentation for a value-for-money study.',
+      'A Treasury spending review has placed a hold on the next phase funding approval.',
+      'The senior civil servant sponsor has been seconded to another department for three months.',
+      'An opposition MP has tabled a written question about the programme\'s budget and timeline.',
+      'The Crown Commercial Service has flagged a procurement compliance concern on a framework call-off.',
+      'The department\'s arm\'s length body is not aligned on the delivery approach, causing governance confusion.',
+      'The independent assurance reviewer has identified a gap between the approved business case and current delivery.',
+      'A data ethics review panel has raised concerns about the citizen data being processed by the new system.',
+      'Departmental communications have published a press release about the programme that overstates progress.',
+      'The Cabinet Secretary has asked to be briefed — the programme is now on the permanent secretary\'s radar.',
+      'A local authority partnership essential to delivery has withdrawn following a change in leadership.',
+      'A ministerial reshuffle has changed the political priority of the programme overnight.',
+      'The accounting officer has raised a concern about value for money that needs to be formally addressed.',
+      'Two government departments have overlapping digital programmes — there is a potential duplication issue.',
+      'An external audit firm has identified a control weakness in the change management process.',
+      'The programme is behind the published digital strategy milestones — the Cabinet Office is tracking this.',
+      'The GDS technology assessment has flagged the proposed architecture as non-compliant with standards.',
+      'A cross-departmental data sharing agreement has stalled in legal — it is blocking a key integration.',
     ],
     crisis:[
       '📰 EXPOSURE: A journalist has documents and is running a story on the programme tomorrow.',
       '🚨 POLITICAL: A minister has been briefed by the opposition on the project delays. Escalation expected.',
       '🔴 CRITICAL: The programme has been cited in a parliamentary question. Ministerial response required.',
+      '🏛️ PAC INQUIRY: The Public Accounts Committee has announced a formal inquiry into the programme.',
+      '📢 LEAK: Internal programme documents have appeared in the media. Cabinet Office is investigating.',
+      '⚠️ STOP: The Treasury has frozen all uncommitted programme spend pending a rapid review.',
     ]
   },
   energy:{
@@ -2945,11 +3363,34 @@ const INDUSTRY_OPENERS={
       'The local planning authority has issued an objection to the access road construction.',
       'A site safety incident at a nearby project has triggered a group-wide stand-down protocol.',
       'The JV partner is requesting changes to the governance structure mid-delivery.',
+      'A grid connection application has been delayed by the distribution network operator by 8 months.',
+      'The turbine foundation subcontractor has flagged an unforeseen ground condition.',
+      'An environmental impact assessment challenge has been filed by a local residents group.',
+      'The environmental permit application requires additional bat survey data before it can proceed.',
+      'A cable route conflict has emerged with a heritage site that was not identified in the original survey.',
+      'The offshore weather window is closing — installation activities are running behind schedule.',
+      'The export cable manufacturer has confirmed a 16-week lead time that was not in the programme.',
+      'A community liaison meeting last night became confrontational — local trust is at a low.',
+      'The electricity transmission operator has updated grid reinforcement requirements — costs have increased.',
+      'A structural integrity query on the monopile design has been raised by the independent verifier.',
+      'A supply chain bottleneck for electrical switchgear is affecting three critical path activities.',
+      'The offshore operations vessel has been delayed due to a commercial dispute with the charter company.',
+      'The hydrogen production unit commissioning has revealed an unexpected efficiency gap.',
+      'Carbon capture storage approval has stalled — the geological assessment is under review.',
+      'A change in renewable energy subsidy policy has materially affected the project economics.',
+      'The integrated management system audit has identified gaps in several safety-critical procedures.',
+      'The project\'s decommissioning bond has been challenged by the regulator as insufficient.',
+      'A new subsea pipeline routing has been required following archaeological survey findings.',
+      'The energy storage battery management system has a firmware defect — commissioning is paused.',
+      'A protest group has blocked the main site access road — works have been suspended for 48 hours.',
     ],
     crisis:[
       '🔥 INCIDENT: An environmental spill has been detected near the construction zone. Regulator notified.',
       '🚨 EMERGENCY: HSE has issued a prohibition notice following a near-miss at the installation site.',
       '⚠️ CRITICAL: The ESG rating has been downgraded — board is demanding immediate corrective action.',
+      '💥 EXPLOSION: A hydrogen storage vessel has triggered an emergency evacuation. Site stood down.',
+      '🌊 WEATHER: An extreme weather event has damaged offshore infrastructure. Structural review required.',
+      '🔴 REGULATOR: The Environment Agency has issued a formal stop notice on all excavation works.',
     ]
   },
   airlines:{
@@ -2959,11 +3400,34 @@ const INDUSTRY_OPENERS={
       'A crew training backlog means the rollout cannot proceed in two bases without waiver approval.',
       'The safety board has flagged a dependency on a legacy system that is approaching end of life.',
       'Ground handling staff at three airports are refusing to trial the new system without more training.',
+      'The airworthiness authority has requested an additional technical review before certifying the new software.',
+      'A Cabin Safety Officer has raised a formal concern about the reconfigured safety card placement.',
+      'The slot coordination office has flagged conflicts in the new scheduling system output.',
+      'An engineering team at the maintenance base is refusing the new digital tech log without retraining.',
+      'The airport authority has changed the ground handling protocols — the programme needs to revalidate.',
+      'A legacy baggage reconciliation system that is being replaced has an undocumented interface to customs.',
+      'The in-flight entertainment system vendor has gone into administration — the contract is at risk.',
+      'A regulator audit has identified a gap in the crew fatigue management records.',
+      'Two pilot representatives are publicly opposing the new electronic flight bag rollout — morale is low.',
+      'A test flight for the new navigation system software has revealed anomalous behaviour at altitude.',
+      'The hub airport IT team is blocking the new check-in system integration citing their own change freeze.',
+      'The passenger service system cutover window has been challenged by the revenue management team.',
+      'An incident at a competitor airline has caused the safety board to widen its review criteria.',
+      'The new fuel management system has an integration bug that is generating incorrect load sheet data.',
+      'A crew scheduling dispute has meant 30 training days have been cancelled in the last three weeks.',
+      'The EASA has issued an airworthiness directive that affects a system the programme was due to retire.',
+      'Fleet configuration differences between the A320 and A321 variants require rework of the training programme.',
+      'The new boarding management system is increasing gate turnaround times in testing by 4 minutes.',
+      'The in-house MRO team is challenging the new maintenance tracking module interface requirements.',
+      'A data protection concern has been raised about crew personal data being processed by the scheduling vendor.',
     ],
     crisis:[
       '🚨 SAFETY: A critical system failure during a live flight caused an avionics anomaly. AAIB notified.',
       '✊ INDUSTRIAL: The union has called a 48-hour work action starting midnight. Fleet coverage at risk.',
       '⚠️ ALERT: The airworthiness authority has placed an operational hold on two aircraft types.',
+      '🛩️ GROUNDING: An airworthiness directive has grounded 12 aircraft pending emergency inspection.',
+      '🔴 REGULATOR: EASA has opened a formal investigation into the programme\'s safety management.',
+      '💀 INCIDENT: A ground incident has resulted in a serious injury. The CAA is investigating.',
     ]
   },
   manufacturing:{
@@ -2973,11 +3437,34 @@ const INDUSTRY_OPENERS={
       'The quality team has identified a defect pattern in the pilot batch — root cause unknown.',
       'The union shop steward is requesting a formal consultation session before any further changes.',
       'A second shift team has refused to participate in the new system trial until day shift issues are resolved.',
+      'A production line modification has exceeded its planned downtime window by 22 hours.',
+      'The maintenance team has identified a recurring equipment fault that is disrupting the pilot programme.',
+      'A tier-1 supplier has changed their component specification without notification.',
+      'The works council has formally requested sight of the automation impact assessment.',
+      'A quality escape has reached the assembly stage — 340 units may be affected.',
+      'The MES implementation has created a data discrepancy between the shop floor and ERP system.',
+      'The tooling for a key component has worn beyond tolerance — lead time for replacement is 10 weeks.',
+      'A production line safety system has been incorrectly configured during the digital upgrade.',
+      'The operations director is demanding a rollback to the manual process after three days of disruption.',
+      'A trade union has submitted a formal consultation request citing job security concerns.',
+      'The environmental permit renewal requires updated emissions data from the new production process.',
+      'A robot arm calibration failure has generated a batch of out-of-tolerance parts.',
+      'A Kaizen event produced recommendations that conflict with the IT system change being deployed.',
+      'The new visual management system is not being updated by team leaders — it is already out of date.',
+      'A customer quality audit has been scheduled during the transition period — the timing is problematic.',
+      'A process FMEA update has been rejected by the engineering authority pending further analysis.',
+      'The plant director has escalated to the board that the digital programme is disrupting output targets.',
+      'A critical machine has been taken offline for calibration — planned downtime was not communicated.',
+      'Three shift supervisors have submitted a joint complaint about the new reporting system interface.',
+      'An ISO recertification audit is scheduled during the system transition — preparation is insufficient.',
     ],
     crisis:[
       '💥 HALT: A production line emergency stop was triggered — potential quality defect in live product.',
       '🚨 SAFETY: A health and safety inspector has issued an improvement notice after a floor inspection.',
       '🔴 CRITICAL: A defect batch has reached a key customer. Recall protocol under consideration.',
+      '⚙️ BREAKDOWN: A catastrophic equipment failure has halted the entire production line.',
+      '🔥 FIRE: A fire suppression system activation has triggered an emergency evacuation and plant shutdown.',
+      '⚠️ EMBARGO: A key export market has placed an embargo on the product pending quality review.',
     ]
   },
   oilgas:{
@@ -2987,11 +3474,34 @@ const INDUSTRY_OPENERS={
       'The environmental NGO has issued a public statement about the project site activities.',
       'A key engineering contractor has entered financial difficulty — their solvency is being reviewed.',
       'The regulatory authority has requested a formal progress submission within 10 working days.',
+      'A well integrity report has flagged anomalous casing wear at 3,200 metres — investigation ongoing.',
+      'The subsea installation vessel is unavailable for the planned campaign — weather and scheduling conflict.',
+      'A HAZOP review has identified a safety case gap that requires formal resolution before first oil.',
+      'The pipeline route survey has encountered an unexploded ordnance risk — re-routing is under assessment.',
+      'A topsides module has failed weight tolerances — redesign is required to meet the jacket capacity.',
+      'Community consultation for the onshore processing facility has generated 47 formal objections.',
+      'The process safety management system has not been updated to reflect the latest design changes.',
+      'A decommissioning obligation has been triggered by regulatory change earlier than planned.',
+      'The JV operator has invoked a sole risk provision — costs and schedule are in dispute.',
+      'A helicopter transport restriction has limited crew change frequency and is affecting morale.',
+      'The fiscal metering system calibration has been challenged by the tax authority.',
+      'A seabed survey has revealed pipeline free-span violations that require intervention.',
+      'An FPSO turret bearing inspection has found accelerated wear — operational restrictions are in place.',
+      'A security threat assessment has prompted a review of the remote site access protocols.',
+      'The produced water treatment system is not meeting environmental discharge standards in testing.',
+      'An upstream pressure increase has exceeded the pipeline design envelope — engineering review required.',
+      'A third-party logistics provider has been sanctioned — the supply chain needs immediate reorganisation.',
+      'The carbon intensity reporting methodology has been challenged by an external sustainability reviewer.',
+      'A seismic event in the vicinity has triggered a mandatory platform inspection — production suspended.',
+      'The chemical injection system has failed in-service — corrosion rates in the pipeline are increasing.',
     ],
     crisis:[
       '🔥 SPILL: A containment failure has released product into the secondary bund. Regulator en route.',
       '🚨 EMERGENCY: A wellhead pressure anomaly has triggered automatic shutdown. Personnel evacuated.',
       '⚠️ INCIDENT: An environmental monitoring alert has been triggered at the perimeter fence.',
+      '💀 FATALITY: A contractor fatality has occurred on the platform. All operations suspended.',
+      '🛢️ BLOWOUT: An uncontrolled well release has been reported. Emergency response activated.',
+      '🔴 EXPLOSION: A process upset has caused an explosion on the production deck. Mayday declared.',
     ]
   },
   telecoms:{
@@ -3001,11 +3511,34 @@ const INDUSTRY_OPENERS={
       'Customer migration from legacy services is running at 61% of plan — churn risk increasing.',
       'The network testing team has identified a backhaul capacity issue in the rural rollout zones.',
       'The regulator has opened a formal monitoring case on the SLA compliance position.',
+      'A planning application for 14 mast sites has been refused by a single local authority.',
+      'A roaming agreement with a neighbouring operator has not been finalised — coverage gap is emerging.',
+      'The OEM vendor has notified a delay in 5G baseband unit supply — 8 weeks to new ETA.',
+      'A landlord dispute over wayleave access is holding up mast erection on the critical path.',
+      'The network operations centre has flagged an unexplained call drop rate increase in the urban core.',
+      'The legacy billing system migration is generating incorrect invoices for 3% of business customers.',
+      'A fibre dig has encountered asbestos in the ducting — all works in that zone are suspended.',
+      'A competitor\'s network failure is driving unexpected demand increases — capacity planning needs revision.',
+      'The digital twin model of the network does not match current physical infrastructure records.',
+      'An Ofcom monitoring report has cited the programme for three technical non-compliance items.',
+      'A key network engineer has been poached by a competitor — critical knowledge transfer is incomplete.',
+      'A software defined networking component is behaving unpredictably in the live test environment.',
+      'The transport layer upgrade has introduced latency spikes affecting enterprise SLA customers.',
+      'A civil infrastructure sharing arrangement has collapsed — the partner is withdrawing from the agreement.',
+      'The emergency services communication upgrade dependency has not been handed over by the incumbent.',
+      'A radio access network upgrade has reduced indoor coverage in two urban districts.',
+      'The core network upgrade window has been vetoed by the major enterprise customer steering board.',
+      'A wayleave dispute has escalated to legal proceedings — the route is now formally contested.',
+      'Ofcom has issued a new spectrum usage obligation with a 6-month compliance deadline.',
+      'A firmware update pushed to 8,000 devices remotely has caused a 12% reboot failure rate.',
     ],
     crisis:[
       '🔴 BREACH: An SLA breach has triggered the contractual penalty clause — client notification required.',
       '🚨 OUTAGE: A core router failure has taken three city nodes offline. 140,000 customers affected.',
       '⚠️ CRITICAL: The Ofcom audit team has arrived on-site with specific questions about the rollout plan.',
+      '📡 NETWORK DOWN: A national backbone failure is affecting emergency services communication.',
+      '🔒 SECURITY: A state-sponsored cyber attack has compromised core network management systems.',
+      '🔴 PENALTY: Three consecutive SLA failures have triggered a contractual termination notice.',
     ]
   },
   pharma:{
@@ -3015,11 +3548,34 @@ const INDUSTRY_OPENERS={
       'A contract research organisation is underperforming — patient recruitment is 18% below plan.',
       'The IP protection team has flagged a competitor publication that overlaps with trial data.',
       'Manufacturing compliance raised a concern about the batch release process documentation.',
+      'A principal investigator site has been placed on clinical hold following a GCP audit finding.',
+      'The safety monitoring board has called an unscheduled interim review — the agenda is not yet known.',
+      'Stability data from the 18-month timepoint has shown a degradation profile outside specification.',
+      'A patient dropout rate of 22% in the Phase III trial is threatening the statistical power.',
+      'An ethics committee has raised a concern about the protocol amendment at a key site.',
+      'The regulatory dossier for the EU submission is missing a module that requires third-party data.',
+      'A manufacturing process deviation has occurred — the affected batches are quarantined pending review.',
+      'A key opinion leader who sits on the advisory board has co-authored a competing paper.',
+      'The companion diagnostic device partner has flagged a supply chain issue affecting the trial.',
+      'A drug interaction signal has been identified in post-market surveillance data — review required.',
+      'A biosimilar competitor has received approval six months earlier than anticipated.',
+      'The clinical pharmacology team has queried the paediatric extrapolation data in the dossier.',
+      'A site initiation visit has revealed that a site lacks the required equipment for protocol compliance.',
+      'The drug substance manufacturer has been issued a warning letter by the FDA — supply is at risk.',
+      'A protocol deviation involving three patients needs to be assessed for impact on trial integrity.',
+      'The pharmacovigilance system is not capturing adverse event data correctly from two sites.',
+      'An import licence delay is preventing supply of investigational product to three countries.',
+      'The health economics model underpinning the submission has been challenged by a payer advisory board.',
+      'A cold chain failure during shipment has compromised a batch of investigational product.',
+      'Two regulatory authorities have issued conflicting guidance on the same aspect of the dossier.',
     ],
     crisis:[
       '🚨 HOLD: The FDA has placed a clinical hold on the trial following a serious adverse event report.',
       '🔴 INTEGRITY: A data integrity audit has flagged inconsistencies in two trial sites. Trial paused.',
       '⚠️ CRITICAL: A patent challenge has been filed. IP counsel is requesting immediate programme review.',
+      '💊 DEATH: A suspected trial-related fatality has occurred. All dosing suspended. Regulator notified.',
+      '🔬 RECALL: A product quality defect in a commercial batch has triggered a global recall.',
+      '🚨 FRAUD: A suspected data fabrication at a clinical site has been reported. Site immediately closed.',
     ]
   },
   datacenter:{
@@ -3029,11 +3585,34 @@ const INDUSTRY_OPENERS={
       'The cooling system efficiency is 8% below design spec — the vendor is investigating.',
       'A security penetration test has revealed a vulnerability in the network management layer.',
       'The planning authority has raised an objection to the expansion permit for Phase 2.',
+      'The generator load test has failed — the automatic transfer switch did not activate within tolerance.',
+      'A raised floor tile has cracked under a high-density rack — the loading assessment needs review.',
+      'The building management system is not integrating with the DCIM platform as designed.',
+      'A Tier III certification requirement has identified a single point of failure in the UPS topology.',
+      'The cable containment installation does not meet the fire stopping specification.',
+      'A customs delay is holding two critical switching modules at the port.',
+      'The transformer energisation has been deferred by the DNO — a grid capacity study is required.',
+      'A fuel storage licence renewal is pending — the standby generator cannot be commissioned without it.',
+      'The cooling tower water treatment report has flagged Legionella risk — remediation required.',
+      'An IP68-rated cable entry point has failed in the wet room test — ingress risk is confirmed.',
+      'The client\'s change in rack density requirements mid-build requires structural reinforcement.',
+      'A subcontractor has issued a claim for variations that were not properly approved under the contract.',
+      'The fibre dark strand provision does not match the client\'s connectivity specification.',
+      'A commissioning test failure in the fire suppression system has extended the programme by three weeks.',
+      'Acoustic testing has shown the cooling plant exceeds the planning noise condition at boundary.',
+      'The DCIM software vendor has issued an end-of-life notice for the agreed platform version.',
+      'A vibration analysis on the generator room has flagged harmonic resonance with the floor structure.',
+      'The earthing system installation does not comply with the current edition of BS 7671.',
+      'The hyperscaler\'s independent technical auditor has issued a punch list of 40 items.',
+      'A critical PDU has been delivered with the wrong amperage rating — reorder lead time is 14 weeks.',
     ],
     crisis:[
       '💥 OUTAGE: A cooling failure on Rack B7 has caused a partial shutdown. SLA breach imminent.',
       '🚨 SECURITY: An active intrusion attempt has been detected on the management network.',
       '🔴 CRITICAL: The hyperscaler has invoked the SLA penalty clause. Client notification required.',
+      '⚡ POWER FAIL: A total power failure has taken the live floor offline. RTO breach in 8 minutes.',
+      '🔥 FIRE ALERT: A smoke detector activation has triggered halon suppression. Emergency services called.',
+      '🌊 FLOOD: An underground water main burst has flooded the cable basement. Critical infrastructure at risk.',
     ]
   },
   software:{
@@ -3043,11 +3622,34 @@ const INDUSTRY_OPENERS={
       'A critical security vulnerability has been found in a third-party dependency used in production.',
       'Two senior engineers are in open conflict about the architectural direction of the platform.',
       'The QA lead reports 40% of regression tests are failing after the last merged branch.',
+      'A major refactoring task has created 120 unresolved merge conflicts across 6 feature branches.',
+      'The on-call engineer has escalated a memory leak in the production service that is degrading performance.',
+      'A GDPR subject access request has revealed that user deletion is not functioning correctly.',
+      'The database migration script has a logic error that could corrupt records in the production environment.',
+      'Three microservices are exhibiting intermittent latency spikes that the team cannot reproduce consistently.',
+      'A cloud provider cost anomaly has been identified — spend is 340% above the monthly budget estimate.',
+      'The product roadmap has been revised by the CPO without consulting the engineering team.',
+      'A legacy monolith dependency is blocking the migration of two services to the new architecture.',
+      'API rate limiting changes from a key third party are breaking the customer onboarding flow.',
+      'A mobile app release has been rejected by the App Store review team for the third time.',
+      'The engineering team is 30% below capacity following two resignations and a long-term sick absence.',
+      'Performance testing has revealed the system cannot handle the expected peak load at launch.',
+      'A compliance audit has flagged that personal data is being logged in plain text in the system logs.',
+      'The integration test environment has been down for five days — the vendor has not responded.',
+      'A junior developer accidentally pushed credentials to a public repository — an incident is underway.',
+      'The business is requesting a hard launch date that the engineering team considers technically infeasible.',
+      'An open source library critical to the platform has been abandoned by its maintainer.',
+      'A configuration management error has caused the staging environment to diverge from production.',
+      'The design system was updated without communicating breaking changes — 14 components are broken.',
+      'A third-party analytics tool is sending data to an unapproved jurisdiction under GDPR.',
     ],
     crisis:[
       '🚨 BREACH: A zero-day vulnerability has been exploited. Security team has taken the system offline.',
       '🔴 FAILED: The release went live and is causing data corruption in 6% of user sessions.',
       '⚠️ ESCALATION: The CTO has called a war room after three consecutive sprint failures.',
+      '💣 RANSOMWARE: A ransomware attack has encrypted the CI/CD pipeline. All deployments halted.',
+      '📉 OUTAGE: A production outage has lasted 4 hours — SLA breach confirmed. CEO has been informed.',
+      '🔓 DATA LEAK: 200,000 user records have been found on a public S3 bucket. Press have the story.',
     ]
   },
   logistics:{
@@ -3057,11 +3659,34 @@ const INDUSTRY_OPENERS={
       'The warehouse management system experienced a 4-hour crash during peak despatch — orders are stacking.',
       'A driver shortage has reduced fleet utilisation below the contractual SLA threshold.',
       'The fuel cost spike has made the current last-mile delivery model financially unviable.',
+      'A new customs declaration requirement has created a compliance gap in 18% of shipments.',
+      'A temperature excursion has been flagged in the cold chain — a pharmaceutical client is escalating.',
+      'A strike by port workers is disrupting inbound freight across the south coast.',
+      'A major e-commerce client has doubled their forecast volume — capacity planning is insufficient.',
+      'A vehicle telematics system has failed — real-time routing optimisation is unavailable.',
+      'A load securing failure caused product damage on a long-haul route — insurance claim in progress.',
+      'The automated sortation system at the regional hub has a conveyor fault — throughput is at 40%.',
+      'A cross-docking operation has generated significant errors — wrong items are reaching the wrong depots.',
+      'A dangerous goods shipment has been found to be incorrectly classified — regulatory exposure exists.',
+      'The third-party logistics provider is failing the monthly KPI review for the fourth consecutive month.',
+      'A last-mile routing algorithm update has increased delivery times in two urban zones.',
+      'A client has formally disputed the proof of delivery records — the dispute could affect invoice payment.',
+      'A driver hours violation has been identified in the compliance report — the operator licence is at risk.',
+      'The reverse logistics process is generating a 28% error rate on returns processing.',
+      'A warehouse lease renewal has been refused — alternative storage is required within 90 days.',
+      'A hazardous materials spillage in the warehouse has triggered an HSE investigation.',
+      'A network redesign recommendation from the consultants conflicts with a long-term client contract.',
+      'A new same-day delivery commitment made by sales has not been reviewed for operational feasibility.',
+      'The transport management system integration with the client ERP has failed after a client update.',
+      'A third party has filed a noise abatement complaint against the night-time distribution operation.',
     ],
     crisis:[
       '🚨 PENALTY: A major client has invoked the SLA penalty clause citing three consecutive late deliveries.',
       '🔴 FAILURE: The warehouse system is down during peak and 800 orders are unprocessed.',
       '⚠️ CRITICAL: A customs authority hold has stopped all cross-border shipments for 48 hours.',
+      '🚛 ACCIDENT: A serious HGV road traffic accident involving a fleet vehicle has been reported.',
+      '🔥 FIRE: A warehouse fire has destroyed stock and suspended operations at the regional hub.',
+      '🔒 THEFT: An organised cargo theft has removed £800,000 of high-value goods from a trailer.',
     ]
   },
   hospitality:{
@@ -3073,11 +3698,32 @@ const INDUSTRY_OPENERS={
       'The brand team has flagged a design deviation from the approved guest experience standard.',
       'Two properties are receiving inconsistent rollout timelines — regional staff are comparing notes.',
       'A key supplier contract expired without renewal and is now blocking the new procurement workflow.',
+      'The spa booking system integration has failed — treatments are double-booking in the new platform.',
+      'A revenue management system update has caused room rates to display incorrectly on OTA channels.',
+      'A competitor has announced a superior loyalty programme just as ours is being redesigned.',
+      'The events management module does not support the type of group booking contracts used at three properties.',
+      'The GM of the flagship property has gone directly to the owner with concerns about the IT team.',
+      'A data migration validation error has caused historic guest preferences to be lost in 12% of profiles.',
+      'The housekeeping workflow change has generated significant resistance from the floor supervisors.',
+      'A five-star review was publicly removed by the platform after a data discrepancy was flagged.',
+      'The concierge team has flagged that the new guest app is providing inaccurate local recommendations.',
+      'An integration between the PMS and the door lock system has failed — physical key-cutting is needed.',
+      'The payroll interface to the new scheduling system is generating incorrect pay calculations.',
+      'An owner has requested a bespoke report format that the new system does not support out of the box.',
+      'Three senior F&B managers have resigned in the same week, creating a knowledge gap mid-implementation.',
+      'A resort property has a different property type classification — the system cannot accommodate it.',
+      'The front desk training completion rate is at 51% with go-live three weeks away.',
+      'A channel manager integration is sending incorrect availability data to booking platforms.',
+      'The loyalty points engine has miscalculated redemption rates — guest complaints are arriving.',
+      'A corporate client has raised a formal complaint about their negotiated rate not applying in the new system.',
     ],
     crisis:[
       '🚨 GUEST CRISIS: A high-profile guest complaint has been escalated directly to the owner.',
       '🔴 BRAND ALERT: A social media post from a staff member has gone viral — brand audit team incoming.',
       '⚠️ SYSTEM DOWN: The new PMS failed at check-in peak. Front desk is reverting to manual process.',
+      '🏨 EVACUATION: A fire alarm activation during peak check-in has created a major guest incident.',
+      '📰 MEDIA: A negative review by an influencer has gone viral, naming the property and the GM.',
+      '🔒 DATA BREACH: Guest credit card data may have been exposed through the new payment integration.',
     ]
   },
   beauty:{
@@ -3089,11 +3735,32 @@ const INDUSTRY_OPENERS={
       'The retail buyer at a major department store is threatening to delist the range unless exclusivity terms are revised.',
       'The digital team has discovered a data privacy gap in the loyalty app that could trigger a regulatory investigation.',
       'Three salon directors have raised concerns that the new booking platform is reducing their client retention scores.',
+      'A product range in the EU requires reformulation to meet the latest SCCS cosmetic safety assessment standards.',
+      'The influencer marketing campaign has significantly underperformed — reach was 40% below target.',
+      'A TikTok review has gone viral for the wrong reasons — comment section is overwhelmingly negative.',
+      'The packaging supplier has confirmed a six-week delay on sustainable packaging materials for the hero product.',
+      'A franchise dispute has escalated — the franchisee is claiming breach of contract in three territories.',
+      'The regulatory submission for the new active ingredient in Japan has stalled — additional data required.',
+      'A product photography shoot produced assets that do not align with the brand positioning work.',
+      'Three key wholesale accounts have reduced their order volumes without explanation.',
+      'The loyalty programme restructure has generated significant backlash from high-value customers.',
+      'The salon technology system migration has caused booking gaps — 120 appointments were lost in transition.',
+      'A new sustainability claim on packaging has been challenged as greenwashing by a consumer group.',
+      'A social listening report shows the brand sentiment score has dropped 18 points in six weeks.',
+      'The beauty editor of a major title has published a critical comparative review featuring the brand.',
+      'A manufacturing partner in Asia has been flagged in a supply chain transparency audit.',
+      'A pop-up retail concept has generated negative media coverage due to a licensing compliance issue.',
+      'The e-commerce platform migration has caused basket abandonment rates to spike at 78%.',
+      'An influencer collaboration agreement has been signed without legal review — terms are unfavourable.',
+      'The loyalty app push notification campaign was sent to the wrong customer segment.',
     ],
     crisis:[
       '🚨 BRAND CRISIS: A viral social media post is accusing the brand of harmful ingredients. Press calling.',
       '🔴 RECALL ALERT: A product batch has triggered an allergic reaction cluster — regulatory body notified.',
       '⚠️ INFLUENCER FALLOUT: The brand lead ambassador has publicly ended the partnership on Instagram.',
+      '💄 CONTAMINATION: A production contamination has been confirmed — the entire range is under review.',
+      '📰 EXPOSE: An investigative journalist has published a supply chain exposé naming the brand.',
+      '🔒 DATA BREACH: Customer personal and payment data from the loyalty app has been compromised.',
     ]
   },
   retail:{
@@ -3103,15 +3770,37 @@ const INDUSTRY_OPENERS={
       'The ERP vendor has changed their delivery timeline for the critical integration module.',
       'Two regions are running conflicting change programmes that overlap with the platform rollout.',
       'The finance lead is challenging whether the benefits case still holds given market conditions.',
+      'A major store format redesign programme is competing for the same IT resources as this project.',
+      'The merchandise planning team has flagged that the new allocation engine is producing poor outputs.',
+      'A key integration between the order management system and the warehouse is failing intermittently.',
+      'A competitor\'s replatforming failure has made the board risk-averse — momentum is stalling.',
+      'Three regional managers have submitted a joint letter opposing the new workforce scheduling system.',
+      'The customer data platform migration has generated a 9% reduction in matched loyalty profiles.',
+      'A GDPR compliance review has flagged that marketing consent data was not migrated correctly.',
+      'The click-and-collect volume has tripled since announcement — capacity planning needs revision.',
+      'A payment gateway integration test has failed — the go-live date is now at risk.',
+      'The supply chain visibility tool is generating incorrect ETA predictions for 22% of shipments.',
+      'A store refurbishment programme has revealed structural issues that conflict with the new checkout design.',
+      'The product information management system has duplicate entries for 8% of the active SKU range.',
+      'A third-party price comparison tool is surfacing pricing inconsistencies across channels.',
+      'The promotional pricing engine is not honouring loyalty tier discounts correctly.',
+      'A new digital marketplace integration has introduced tax classification errors on affected lines.',
+      'Two overseas territories are not included in the scope but are impacted by the core system change.',
+      'The automated replenishment model has over-ordered seasonal products by a significant margin.',
+      'A social commerce trial has generated customer data that is not feeding into the CRM as designed.',
+      'The till training completion rate in a key region is at 38% with go-live in two weeks.',
+      'An external consultant\'s assessment has rated the programme delivery confidence as amber-red.',
     ],
     crisis:[
       '🔴 OUTAGE: The ERP go-live has failed — stores in three regions cannot process transactions.',
       '🚨 ESCALATION: The regional director has gone directly to the CEO about delivery quality.',
       '⚠️ CRITICAL: A pilot store system failure has been shared on social media by staff.',
+      '🛒 CYBER: A point-of-sale data breach has affected 40 stores — card data may be compromised.',
+      '📉 STOCK: An inventory system error has created a £2.4M stock discrepancy discovered by the auditors.',
+      '🔥 CRISIS: A warehouse fire has disrupted the supply chain for the entire north region.',
     ]
   },
 };
-
 const INDUSTRY_SCENES={
   construction:{
     env:'🏗️',crisis:'💥🏗️',
@@ -3564,29 +4253,64 @@ const Auth={
   },
   async register(){
     const btn=document.querySelector('#registerForm .btn.primary');
-    if(btn)btn.disabled=true;
+    if(btn){btn.disabled=true;btn.textContent='Creating account...';}
     try{
       const name=regName.value.trim(),u=regUser.value.trim().toLowerCase(),p=regPass.value;
       if(!name||!u||p.length<6){regErr.textContent='Enter name, username, and password of at least 6 characters.';return}
+      // Try Supabase cloud registration first
+      if(typeof CloudStore!=='undefined'&&_sbConfigured){
+        const email=u.includes('@')?u:u+'@deliver.game';
+        const res=await CloudStore.register(email,p,name);
+        if(res.error){
+          // If cloud fails, fall back to local only
+          console.log('Cloud register failed, using local:',res.error);
+        } else {
+          UI.toast('✅ Account created in cloud — your progress will sync across devices.');
+        }
+      }
+      // Always create local account too (works offline)
       if(DB.users[u]){regErr.textContent='Username already taken.';return}
       const hashed=await hashPass(p);
       DB.users[u]={name,pass:hashed,created:new Date().toISOString(),game:null,history:[],achievements:{},score:0};
       DB.current=u;Store.save(DB);Menu.render();UI.screen('menu');
       if(!localStorage.getItem('deliver_tutdone'))UI.openModal('tutorialModal');
-    }finally{if(btn)btn.disabled=false;}
+    }finally{if(btn){btn.disabled=false;btn.textContent='Create Account';}}
   },
   async login(){
     const btn=document.querySelector('#loginForm .btn.primary');
-    if(btn)btn.disabled=true;
+    if(btn){btn.disabled=true;btn.textContent='Signing in...';}
     try{
       const u=loginUser.value.trim().toLowerCase(),p=loginPass.value;
+      // Try Supabase cloud login first
+      if(typeof CloudStore!=='undefined'&&_sbConfigured){
+        const email=u.includes('@')?u:u+'@deliver.game';
+        const res=await CloudStore.login(email,p);
+        if(res.ok){
+          // Cloud login succeeded — pull latest save and continue
+          DB=Store.load();   // reload after pullToLocal merged cloud data
+          if(!DB.users[u]){
+            // New device — create local shadow from cloud data
+            DB.users[u]=DB.users[u]||{name:u,pass:'',created:new Date().toISOString(),game:null,history:[],achievements:{},score:0};
+          }
+          DB.current=u;Store.save(DB);Menu.render();UI.screen('menu');
+          UI.toast('☁️ Signed in — latest cloud save loaded.');
+          return;
+        }
+        // Cloud login failed — fall through to local
+        console.log('Cloud login failed, trying local:', res.error);
+      }
+      // Local fallback
       if(!DB.users[u]){loginErr.textContent='Username not found.';return}
       const match=await verifyPass(p,DB.users[u].pass);
       if(!match){loginErr.textContent='Incorrect password.';return}
       DB.current=u;Store.save(DB);Menu.render();UI.screen('menu');
-    }finally{if(btn)btn.disabled=false;}
+    }finally{if(btn){btn.disabled=false;btn.textContent='Sign In';}}
   },
-  logout(){DB.current=null;Store.save(DB);STATE=null;UI.screen('auth')}
+  logout(){
+    DB.current=null;Store.save(DB);STATE=null;
+    if(typeof CloudStore!=='undefined')CloudStore.logout().catch(()=>{});
+    UI.screen('auth');
+  }
 };
 
 // ── Menu ──────────────────────────────────────────────────
@@ -3773,7 +4497,14 @@ const Leaderboard={
     DB.users[user].score=score;
   },
   render(){
-    const lb=DB.leaderboard||[];
+    // Load cloud leaderboard if online
+    if(typeof CloudStore!=='undefined'&&CloudStore.isOnline()&&!this._cloudLbCache){
+      CloudStore.getLeaderboard(20).then(rows=>{
+        if(rows.length){this._cloudLbCache=rows;Render.content();}
+      }).catch(()=>{});
+    }
+    const cloudLb=this._cloudLbCache||[];
+    const lb=cloudLb.length?cloudLb:(DB.leaderboard||[]);
     leaderContent.innerHTML=lb.length===0?'<p class="muted">No scores yet. Complete a career to appear here.</p>':
       lb.slice(0,10).map((e,i)=>`<div class="email"><div class="between">
         <div><b>${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.'} ${sanitise(e.name)}</b><p class="muted" style="margin:4px 0">Level ${e.level} · ${e.turns} turns</p></div>
@@ -5417,7 +6148,7 @@ const Engine={
 
 // ── Game ──────────────────────────────────────────────────
 const Game={
-  newCareer(){SELECT={industry:null,method:null,position:null};Setup.render();UI.screen('setup')},
+  newCareer(){SELECT={industry:null,method:null,position:null};Setup.render();UI.screen('setup');Agent.reset();},
   start(){
     const pos=SELECT.position||POSITIONS[1]; // default to Junior PM
     const startLevel=pos.level;
@@ -5425,9 +6156,9 @@ const Game={
     // Store position info in STATE
     STATE.selectedPosition=pos.id;
     STATE.selectedPositionTitle=pos.title;
-    this.save();Render.all();UI.screen('game');
+    this.save();Render.all();UI.screen('game');Agent.reset();Agent.showButton();
   },
-  resume(){STATE=deep(DB.users[DB.current].game);Render.all();UI.screen('game')},
+  resume(){STATE=deep(DB.users[DB.current].game);Render.all();UI.screen('game');Agent.showButton();},
   save(){
     if(!DB.current||!STATE)return;
     DB.users[DB.current].game=deep(STATE);
@@ -5489,6 +6220,8 @@ const Game={
     if(el('industryStartBtn'))el('industryStartBtn').style.opacity='0';
 
     UI.openModal('industryModal');
+    // Pause agent — player must flip the card and click Start
+    if(typeof Agent!=='undefined')Agent.pause('Industry card — player choosing new role');
   },
 
   flipIndustryCard(){
@@ -5533,6 +6266,7 @@ const Game={
     STATE.events.unshift('⚠️ CONTINUATION: After a career setback, you negotiated a second chance. Stakeholders are watching your next move closely.');
     STATE.careerNarrative.push({level:STATE.level,title:'Career Setback — Continued',text:`At Level ${STATE.level}, ${STATE.failReason||'the project failed'} You chose to continue rather than restart, accepting a 20 XP penalty and a probationary period. Stakeholders are watching every decision.`});
     UI.toast('⚠️ Continued from setback — 20 XP penalty applied. Metrics partially restored. Trust must be rebuilt.');
+    if(Agent.mode==='watch')setTimeout(()=>Agent.scheduleTurn(),1500);
     Sound.play('warn');
     this.save();
     // Transition animation before re-entering game
@@ -5555,11 +6289,17 @@ const Game={
     this.save();Render.all();
     setTimeout(()=>this.showLevelStart(),300);
   },
-  exit(){this.save();Menu.render();UI.screen('menu')},
+  startNewLevelAndResume(){
+    this.startNewLevel();
+    // Resume agent AFTER the level start modal is dismissed
+    // Agent.resume() is called from closeLevelStart() below
+  },
+  exit(){this.save();Menu.render();UI.screen('menu');Agent.hideButton();},
   // #34 Board presentation
   boardPresent(action){
     UI.closeModal('boardModal');
     STATE.boardPresentationDone=true;
+    if(typeof Agent!=='undefined')Agent.resume();
     if(action==='transparent'){
       STATE.dashboard.reputation=clamp(STATE.dashboard.reputation+8);
       STATE.dashboard.stakeholder=clamp(STATE.dashboard.stakeholder+6);
@@ -5598,7 +6338,7 @@ const Game={
     UI.openModal('levelStartModal');
     // #34 trigger board presentation at levels 7 and 9
     if([7,9].includes(STATE.level)&&!STATE.boardPresentationDone){
-      setTimeout(()=>{UI.closeModal('levelStartModal');UI.openModal('boardModal');},300);
+      setTimeout(()=>{UI.closeModal('levelStartModal');UI.openModal('boardModal');if(typeof Agent!=='undefined')Agent.pause('Board presentation — player decision required');},300);
     }
   },
   choose(id){
@@ -5643,7 +6383,7 @@ const Game={
   },
   afterTurn(){
     try{
-    this.save();Render.all();
+    this.save();Render.all();Agent.onTurnEnd();
     if(STATE.failed){
       Sound.play('fail');
       const score=Math.round(STATE.salary/1000+STATE.turn*10+STATE.level*200);
@@ -5815,6 +6555,9 @@ const Render={
     this.top();this.tabs();this.content();
   },
   top(){
+    // Update cloud badge
+    const cb=document.getElementById('cloudBadge');
+    if(cb)cb.style.display=(typeof CloudStore!=='undefined'&&CloudStore.isOnline())?'inline':'none';
     levelBadge.textContent=`Level ${STATE.level}`;
     levelBadge.style.borderColor=STATE.accent;
     lvlNum.textContent=STATE.level;
@@ -6018,6 +6761,7 @@ const Render={
       </div>
       ${mechHtml}
       <div class="card" style="margin-top:12px"><p class="section">Make Your Move</p>
+        ${Agent.renderPanel(optSource)}
         ${opts}
         <label>Custom executive response</label>
         <textarea id="customMove" class="input" rows="3" inputmode="text" autocorrect="on" spellcheck="true" placeholder="Write your own response (15+ characters)..."></textarea>
@@ -6608,6 +7352,520 @@ const Render={
   }
 };
 
+// ══════════════════════════════════════════════════════════
+// AI AGENT — Three modes: off / watch / collab
+// ══════════════════════════════════════════════════════════
+const Agent = {
+  mode: 'off',        // 'off' | 'watch' | 'collab'
+  speed: 'normal',    // 'fast' | 'normal' | 'slow'
+  _timer: null,
+  _thinking: false,
+  _lastThought: null,
+  _lastChoice: null,
+  _log: [],           // [{turn, choice, reasoning}]
+
+  // ── Speed delays ───────────────────────────────────────
+  delays: { fast: 800, normal: 2000, slow: 4000 },
+
+  // ── Blueprint: the rules Claude knows ─────────────────
+  systemPrompt() {
+    const ind = STATE?.industryId || 'hospitality';
+    const level = STATE?.level || 1;
+    const burn = Math.round(STATE?.dashboard?.burnout || 20);
+    const stkh = Math.round(STATE?.dashboard?.stakeholder || 60);
+    const deliv = Math.round(STATE?.dashboard?.delivery || 60);
+    const schedule = Math.round(STATE?.dashboard?.schedule || 60);
+
+    return `You are an expert project delivery leader playing DELIVER, an enterprise project simulation.
+
+GAME MECHANICS — EXACT METRIC DELTAS:
+- BALANCED:    Budget+2, Schedule+1, Morale+3, Stakeholder+5, Delivery+4, Reputation+4, Burnout-2, Quality+2, Compliance+3. Full XP.
+- GOVERNANCE:  Budget+4, Schedule-2, Morale+1, Stakeholder+3, Delivery+2, Reputation+3, Burnout-1, Quality+3, Compliance+5. Full XP.
+- AGGRESSIVE:  Budget-3, Schedule+5, Morale-8, Stakeholder-3, Delivery+1, Burnout+8, Quality-4, Compliance-3. XP-4.
+- PASSIVE:     Budget-2, Schedule-5, Morale-1, Stakeholder-6, Delivery-5, Reputation-4, Burnout+2, Quality-2, Compliance-2. XP-6.
+
+GOLDEN RULES (in priority order):
+1. Default to BALANCED — safe across all metrics simultaneously.
+2. Use GOVERNANCE when compliance, audit, safety, or regulatory risk is present.
+3. Use AGGRESSIVE only ONCE per level maximum, and only when Schedule < 30 and Burnout < 50.
+4. NEVER choose PASSIVE — it destroys Delivery, Stakeholder, and Schedule simultaneously.
+5. If Burnout > 65, choose BALANCED regardless of anything else — decay has begun.
+6. If both Delivery and Stakeholder < 40, choose BALANCED for 3 consecutive turns (survival mode).
+
+CRITICAL: Burnout > 70 = ALL metrics decay every turn automatically. This is irreversible without Balanced decisions.
+
+INDUSTRY: ${ind.toUpperCase()} (Level ${level})
+Industry-specific rules:
+- Banking: GOVERNANCE dominant (60%). Every aggressive decision drops Compliance Score. Below 40 = automatic audit.
+- Healthcare: GOVERNANCE mandatory for any clinical or patient safety scenario. Patient Safety Index must never drop below 50.
+- Construction/Oil&Gas: GOVERNANCE for all safety incidents. HSE Rating must never drop below 50.
+- Government: Avoid aggressive (raises Political Exposure). Keep exposure below 75.
+- Pharma: 75% GOVERNANCE. Every FDA/EMA/regulatory decision must be governance.
+- Beauty/Wellness: NEVER aggressive — Brand Equity -8 is highest penalty in the game.
+- Software: BALANCED dominant (70%). Morale is everything — aggressive destroys engineering teams.
+
+OPTION IDENTIFICATION — The options do NOT show their type. You must identify them from the wording:
+- BALANCED options: "brief the sponsor", "convene a working session", "issue a structured update", transparent communication language.
+- GOVERNANCE options: reference specific regulatory frameworks, formal processes, committees, auditors, legal bodies.
+- AGGRESSIVE options: "demand", "mandate", "override", "impose", "cut scope", "instruct immediately", "no exceptions".
+- PASSIVE options: "allow it to run its course", "defer", "monitor for another week", "avoid raising", "let it resolve".
+
+CURRENT STATE:
+- Burnout: ${burn}% ${burn > 65 ? '⚠️ CRITICAL — choose BALANCED only' : burn > 50 ? '⚠️ Elevated — avoid aggressive' : '✓ Healthy'}
+- Stakeholder: ${stkh}% ${stkh < 40 ? '🚨 DANGER ZONE' : stkh < 55 ? '⚠️ Low' : '✓ OK'}
+- Delivery: ${deliv}% ${deliv < 40 ? '🚨 DANGER ZONE' : deliv < 55 ? '⚠️ Low' : '✓ OK'}
+- Schedule: ${schedule}% ${schedule < 30 ? '⚠️ Critical — aggressive may be justified IF burnout < 50' : '✓ OK'}
+
+Respond ONLY with valid JSON. No markdown, no explanation outside the JSON.
+Schema: {"choice":"A","type":"balanced","reasoning":"2-3 sentence explanation of why this option was chosen, referencing specific wording clues and current metrics","confidence":"high|medium|low"}`;
+  },
+
+  // ── Build the turn prompt ──────────────────────────────
+  turnPrompt(options) {
+    const d = STATE.dashboard || {};
+    const unread = (STATE.emails || []).filter(e => e.unread).length;
+    const isCrisis = STATE.crisisActive;
+    const optText = options.map(o =>
+      `Option ${o.id}: "${o.label}"${o.preview ? ' [Preview: ' + o.preview + ']' : ''}`
+    ).join('\n');
+
+    return `TURN ${STATE.turn} — ${STATE.industry} · ${STATE.company}
+
+CURRENT METRICS:
+Delivery: ${Math.round(d.delivery||50)}% | Stakeholder: ${Math.round(d.stakeholder||50)}% | Budget: ${Math.round(d.budget||50)}%
+Schedule: ${Math.round(d.schedule||50)}% | Morale: ${Math.round(d.morale||50)}% | Burnout: ${Math.round(d.burnout||20)}%
+Reputation: ${Math.round(d.reputation||50)}% | Quality: ${Math.round(d.quality||50)}% | Compliance: ${Math.round(d.compliance||50)}%
+${STATE.industryMechanic ? STATE.industryMechanic.label+': '+Math.round(STATE.industryMechanic.value||50)+'%' : ''}
+Unread inbox warnings: ${unread}
+
+SITUATION:
+${STATE.situation || 'No situation text'}
+${STATE.politics ? 'Political intelligence: ' + STATE.politics : ''}
+${isCrisis ? '🚨 CRISIS EVENT — '+STATE.crisisEvent : ''}
+
+OPTIONS:
+${optText}
+
+Decision style history (last 5): ${(STATE.styleHistory||[]).slice(-5).join(', ') || 'none yet'}
+
+Which option do you choose? Identify the type from the wording, apply the golden rules, and explain your reasoning.`;
+  },
+
+  // ── Smart local fallback — applies golden rules without API ──
+  localDecide(options) {
+    const d = STATE.dashboard || {};
+    const burn  = d.burnout   || 20;
+    const stkh  = d.stakeholder || 60;
+    const deliv = d.delivery  || 60;
+    const sched = d.schedule  || 60;
+    const comp  = d.compliance || 60;
+    const ind   = STATE.industryId || 'hospitality';
+    const lastTypes = (STATE.styleHistory || []).slice(-3);
+    const recentAgg = lastTypes.filter(x => x === 'aggressive').length;
+
+    // Score each option by reading its label for type signals
+    const typeSignals = {
+      governance: ['formal','regulatory','notify','regulator','protocol','committee','invoke','submit','commission','escalate through','governance','compliance','audit','legal','board','capa','riddor','tribunal','assurance'],
+      aggressive: ['demand','mandate','override','impose','cut scope','instruct immediately','no exceptions','proceed without','remove','terminate','ultimatum','24 hours','force','insist','refuse to accept','press the'],
+      passive:    ['allow it','defer','monitor for','avoid raising','let it resolve','no further action','step back','wait for','hold off','observe','absorb','sit with','quietly','do not escalate','delay']
+    };
+
+    const scoreOption = (o) => {
+      const lbl = (o.label || '').toLowerCase();
+      const prev = (o.preview || '').toLowerCase();
+      let score = 0;
+      let detectedType = 'balanced';
+
+      // Detect type from label wording
+      for (const [type, signals] of Object.entries(typeSignals)) {
+        for (const sig of signals) {
+          if (lbl.includes(sig)) {
+            detectedType = type;
+            break;
+          }
+        }
+        if (detectedType !== 'balanced') break;
+      }
+
+      // Base scores by type given current state
+      if (detectedType === 'balanced') {
+        score = 100;
+        // Governance-heavy industries prefer governance
+        if (['banking','healthcare','pharma','airlines','oilgas','construction'].includes(ind)) score = 85;
+      } else if (detectedType === 'governance') {
+        score = 90;
+        // Boost governance for regulated industries
+        if (['banking','healthcare','pharma','airlines','oilgas','construction','government'].includes(ind)) score = 110;
+        // Boost if compliance is low
+        if (comp < 50) score += 20;
+        // Penalise if schedule is critical and burnout is fine
+        if (sched < 30 && burn < 45) score -= 15;
+      } else if (detectedType === 'aggressive') {
+        score = 20;
+        // Only consider if schedule is critical AND burnout is low AND no recent aggression
+        if (sched < 30 && burn < 50 && recentAgg === 0) score = 60;
+        // Never in beauty, never when burnout high
+        if (ind === 'beauty' || burn > 55) score = 0;
+        // Penalise heavily if burnout already elevated
+        if (burn > 45) score -= 30;
+      } else if (detectedType === 'passive') {
+        score = 0; // Never passive
+      }
+
+      // Override rules
+      if (burn > 65) {
+        // Only balanced when burnout critical
+        score = detectedType === 'balanced' ? 200 : 0;
+      }
+      if (stkh < 40 && deliv < 40) {
+        // Survival mode — balanced only
+        score = detectedType === 'balanced' ? 200 : 0;
+      }
+      if (stkh < 45 && detectedType === 'passive') score = 0;
+
+      // Crisis: balanced is best
+      if (STATE.crisisActive) {
+        if (detectedType === 'balanced') score = 150;
+        else if (detectedType === 'governance') {
+          // Governance correct for safety/data breach crises
+          score = 120;
+        }
+        else if (detectedType === 'passive') score = 0;
+      }
+
+      // Penalise repeating aggressive
+      if (detectedType === 'aggressive' && recentAgg >= 1) score = 0;
+
+      return { option: o, score, detectedType };
+    };
+
+    const scored = options.map(scoreOption).sort((a, b) => b.score - a.score);
+    const best = scored[0];
+
+    // Build reasoning
+    const reasonParts = [];
+    if (burn > 65) reasonParts.push(`Burnout at ${Math.round(burn)}% — only Balanced is safe above 65%.`);
+    else if (stkh < 40) reasonParts.push(`Stakeholder at ${Math.round(stkh)}% — survival mode, choosing Balanced.`);
+    else if (best.detectedType === 'governance' && comp < 50) reasonParts.push(`Compliance low at ${Math.round(comp)}% — Governance protects the audit trail.`);
+    else if (best.detectedType === 'governance') reasonParts.push(`Detected Governance language in Option ${best.option.id} — correct for ${ind}.`);
+    else if (best.detectedType === 'aggressive') reasonParts.push(`Schedule at ${Math.round(sched)}%, Burnout at ${Math.round(burn)}% — one aggressive move justified.`);
+    else reasonParts.push(`Balanced approach detected in Option ${best.option.id} — safest choice across all 9 metrics.`);
+
+    // Add why others were rejected
+    const worst = scored.find(s => s.detectedType === 'passive');
+    if (worst) reasonParts.push(`Option ${worst.option.id} contains passive language — rejected.`);
+
+    return {
+      choice: best.option.id,
+      type: best.detectedType,
+      reasoning: reasonParts.join(' '),
+      confidence: best.score >= 100 ? 'high' : best.score >= 60 ? 'medium' : 'low',
+      _local: true
+    };
+  },
+
+  // ── Decision engine — fully local, no API calls ─────────
+  // Returns decision synchronously using localDecide
+  decide(options) {
+    try {
+      return this.localDecide(options);
+    } catch(e) {
+      const safe = options[0] || { id:'A' };
+      return { choice: safe.id, type:'balanced', reasoning:'Fallback.', confidence:'low', _local:true };
+    }
+  },
+
+  // ── Render the agent panel in the situation tab ────────
+  renderPanel(options) {
+    if (this.mode === 'off') return '';
+
+    const modeLabel = this.mode === 'watch' ? '👁 Watching' : '🤝 Collaborating';
+    const modeCol = this.mode === 'watch' ? '#64dcff' : '#9664ff';
+
+    // Speed controls
+    const speeds = ['fast', 'normal', 'slow'];
+    const speedBtns = this.mode === 'watch' ? speeds.map(s =>
+      `<button class="agent-speed-btn ${this.speed === s ? 'active' : ''}" onclick="Agent.setSpeed('${s}')">${s}</button>`
+    ).join('') : '';
+
+    // Thinking / suggestion panel
+    let thoughtHtml = '';
+    if (this._thinking) {
+      thoughtHtml = `<div class="agent-thinking">
+        <div class="agent-thinking-header">
+          <div class="agent-avatar">🤖</div>
+          <div><div class="agent-name">CLAUDE AI</div><div class="agent-role">Analysing situation...</div></div>
+        </div>
+        <div class="agent-reasoning">
+          <span class="agent-typing-dots"><span></span><span></span><span></span></span>
+          <span style="font-size:11px;color:var(--muted);margin-left:8px">Reading metrics and option wording...</span>
+        </div>
+      </div>`;
+    } else if (this._lastThought) {
+      const t = this._lastThought;
+      const confCol = t.confidence === 'high' ? 'var(--green)' : t.confidence === 'low' ? 'var(--red)' : 'var(--gold)';
+
+      if (this.mode === 'watch') {
+        thoughtHtml = `<div class="agent-thinking">
+          <div class="agent-thinking-header">
+            <div class="agent-avatar">🤖</div>
+            <div><div class="agent-name">CLAUDE AI</div><div class="agent-role">AI Decision Engine</div></div>
+            <div style="margin-left:auto"><span class="agent-choice-badge">→ Option ${t.choice}</span></div>
+          </div>
+          <div class="agent-reasoning">${sanitise(t.reasoning)}</div>
+          <div class="agent-confidence">Confidence: <span style="color:${confCol};font-weight:700">${t.confidence}</span> · Type identified: <span style="font-weight:700;text-transform:capitalize">${t.type||'unknown'}</span></div>
+        </div>`;
+      } else {
+        // Collab mode: show suggestion, keep buttons active
+        thoughtHtml = `<div class="agent-suggest-banner">
+          <div class="agent-suggest-title">🤝 AI SUGGESTION · Option ${t.choice}</div>
+          <div class="agent-suggest-text">${sanitise(t.reasoning)}</div>
+          <div style="margin-top:6px;font-size:10px;color:var(--muted)">
+            Confidence: <span style="color:${confCol};font-weight:700">${t.confidence}</span>
+            · Identified type: <span style="font-weight:700;text-transform:capitalize">${t.type||'?'}</span>
+            · You can accept, override, or ignore this suggestion.
+          </div>
+        </div>`;
+      }
+    }
+
+    // Agent decision log (last 5 turns)
+    const recentLog = this._log.slice(-5).reverse();
+    const logHtml = recentLog.length ? `<div style="margin-top:10px;border-top:1px solid var(--line2);padding-top:8px">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:4px">AGENT DECISION LOG</div>
+      ${recentLog.map(l => `<div class="agent-log-entry">
+        <span class="agent-log-turn">T${l.turn}</span>
+        <span class="agent-log-text">${sanitise((l.reasoning||'').slice(0,80))}${(l.reasoning||'').length>80?'...':''}</span>
+        <span class="agent-log-choice">→${l.choice}</span>
+      </div>`).join('')}
+    </div>` : '';
+
+    return `<div class="agent-bar" id="agentBar">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap">
+        <span style="font-size:10px;font-weight:700;color:${modeCol};letter-spacing:.08em">${modeLabel}</span>
+        <span style="font-size:10px;color:var(--muted)">Claude AI is ${this.mode === 'watch' ? 'playing this turn' : 'advising this turn'}</span>
+        ${speedBtns}
+      </div>
+      <button class="agent-mode-btn off" onclick="Agent.cycleMode()" style="font-size:9px">Switch Mode</button>
+    </div>
+    ${thoughtHtml}
+    ${logHtml ? '<div class="card" style="margin-top:8px;padding:8px">'+logHtml+'</div>' : ''}`;
+  },
+
+  // ── Cycle through modes ────────────────────────────────
+  cycleMode() {
+    const modes = ['off', 'watch', 'collab'];
+    const next = modes[(modes.indexOf(this.mode) + 1) % modes.length];
+    this.setMode(next);
+  },
+
+  setMode(m) {
+    this.mode = m;
+    this._lastThought = null;
+    this._thinking = false;
+    clearTimeout(this._timer);
+
+    // Update topbar button label
+    const btn = document.getElementById('agentModeBtn');
+    if (btn) {
+      if (m === 'off') { btn.textContent = '🤖 AI Off'; btn.style.background = ''; btn.style.color = ''; }
+      else if (m === 'watch') { btn.textContent = '👁 Watching'; btn.style.background = 'rgba(100,220,255,.15)'; btn.style.color = '#64dcff'; }
+      else { btn.textContent = '🤝 Collab'; btn.style.background = 'rgba(150,100,255,.15)'; btn.style.color = '#9664ff'; }
+    }
+
+    const label = m === 'off' ? 'AI Agent disabled — you are playing.' : m === 'watch' ? '👁 Watch mode: Claude will play this level. You observe.' : '🤝 Collab mode: Claude suggests, you decide.';
+    UI.toast(label, 3000);
+    Render.all();
+
+    // If watch mode just activated, trigger the first turn
+    if (m === 'watch') this.scheduleTurn();
+  },
+
+  setSpeed(s) {
+    this.speed = s;
+    Render.all();
+  },
+
+  // ── Schedule the next AI turn (watch mode only) ────────
+  scheduleTurn() {
+    if (this.mode !== 'watch') return;
+    if (!STATE || STATE.failed || STATE.won) return;
+    if (this._paused) return;                    // hard pause — only resume() clears this
+    if (document.querySelector('.modal.open')) return;  // modal visible — don't play
+    clearTimeout(this._timer);
+    const delay = this.delays[this.speed] || 2000;
+    this._timer = setTimeout(() => {
+      // Final guard at execution time
+      if (this._paused || !STATE || STATE.failed || STATE.won) return;
+      if (document.querySelector('.modal.open')) return;
+      try { this.executeTurn(); }
+      catch(e) { console.log('Agent turn error:', e.message); this._thinking = false; }
+    }, delay);
+  },
+
+  // ── Execute one AI turn ────────────────────────────────
+  executeTurn() {
+    try {
+      if (this.mode !== 'watch') return;
+      if (!STATE || STATE.failed || STATE.won) return;
+      if (this._thinking) return;
+
+      const isCrisis = STATE.crisisActive && STATE.crisisOptions && STATE.crisisOptions.length;
+      const options = isCrisis ? STATE.crisisOptions : (STATE.options || []);
+      if (!options.length) return;
+
+      // Auto-read inbox to prevent inbox penalty
+      if (STATE.emails) STATE.emails.forEach(e => { e.unread = false; });
+
+      // Show thinking state
+      this._thinking = true;
+      this._lastThought = null;
+      Render.all();
+
+      // Decide using local engine — instant, no API
+      const thought = this.decide(options);
+      this._thinking = false;
+
+      // Guard: game may have ended while we were thinking
+      if (!STATE || STATE.failed || STATE.won || this.mode !== 'watch') return;
+
+      // Validate the choice exists
+      const validIds = options.map(o => o.id);
+      const chosenId = validIds.includes(thought.choice) ? thought.choice : validIds[0];
+      thought.choice = chosenId;
+
+      this._lastThought = thought;
+      this._log.push({ turn: STATE.turn, choice: chosenId, reasoning: thought.reasoning, type: thought.type });
+
+      Render.all();
+
+      // Highlight the chosen option
+      setTimeout(() => {
+        try {
+          document.querySelectorAll('.choice').forEach(btn => {
+            if (btn.dataset.optId === chosenId) {
+              btn.classList.add('agent-highlighted');
+              btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          });
+        } catch(e) {}
+      }, 100);
+
+      // Execute the move
+      const executeDelay = this.speed === 'fast' ? 400 : this.speed === 'slow' ? 2500 : 1200;
+      setTimeout(() => {
+        try {
+          if (this.mode === 'watch' && STATE && !STATE.failed && !STATE.won) {
+            Game.choose(chosenId);
+            const sp = this.scheduleTurn();
+            if (sp && typeof sp.catch === 'function') sp.catch(()=>{});
+          }
+        } catch(e) { console.log('Agent execute error:', e.message); this._thinking = false; }
+      }, executeDelay);
+
+    } catch(e) {
+      console.log('Agent executeTurn error:', e.message);
+      this._thinking = false;
+    }
+  },
+
+  // ── Collab mode: fetch suggestion without playing ──────
+  fetchSuggestion() {
+    try {
+      if (this.mode !== 'collab') return;
+      if (!STATE || this._thinking) return;
+
+      const isCrisis = STATE.crisisActive && STATE.crisisOptions && STATE.crisisOptions.length;
+      const options = isCrisis ? STATE.crisisOptions : (STATE.options || []);
+      if (!options.length) return;
+
+      if (STATE.emails) STATE.emails.forEach(e => { e.unread = false; });
+
+      this._thinking = true;
+      this._lastThought = null;
+      Render.all();
+
+      const thought = this.decide(options);
+      this._thinking = false;
+
+      if (!STATE || this.mode !== 'collab') return;
+
+      const validIds = options.map(o => o.id);
+      thought.choice = validIds.includes(thought.choice) ? thought.choice : validIds[0];
+
+      this._lastThought = thought;
+      this._log.push({ turn: STATE.turn, choice: thought.choice + '?', reasoning: thought.reasoning + ' (suggestion only)', type: thought.type });
+
+      Render.all();
+
+      setTimeout(() => {
+        try {
+          document.querySelectorAll('.choice').forEach(btn => {
+            if (btn.dataset.optId === thought.choice) btn.classList.add('agent-highlighted');
+            btn.classList.add('agent-override');
+          });
+        } catch(e) {}
+      }, 100);
+    } catch(e) {
+      console.log('Agent fetchSuggestion error:', e.message);
+      this._thinking = false;
+    }
+  },
+
+  // ── Called after each player turn in collab mode ───────
+  onTurnEnd() {
+    if (this.mode === 'collab') {
+      this._lastThought = null;
+      setTimeout(() => this.fetchSuggestion(), 800);
+    }
+    if (this.mode === 'watch') {
+      this._lastThought = null;
+      // Schedule the next turn — this is how the agent keeps playing
+      this.scheduleTurn();
+    }
+  },
+
+  // ── Show the topbar button once game starts ────────────
+  showButton() {
+    const btn = document.getElementById('agentModeBtn');
+    if (btn) btn.style.display = '';
+  },
+
+  hideButton() {
+    const btn = document.getElementById('agentModeBtn');
+    if (btn) { btn.style.display = 'none'; this.setMode('off'); }
+  },
+
+  // ── Reset on new game ──────────────────────────────────
+  // ── Pause / resume for modals and player decisions ──────
+  pause(reason) {
+    this._paused = true;
+    clearTimeout(this._timer);
+    this._thinking = false;
+  },
+
+  resume() {
+    this._paused = false;
+    if (this.mode === 'watch' && STATE && !STATE.failed && !STATE.won) {
+      clearTimeout(this._timer);
+      setTimeout(() => this.scheduleTurn(), 1500);
+    }
+    if (this.mode === 'collab' && STATE && !STATE.failed && !STATE.won) {
+      setTimeout(() => this.fetchSuggestion(), 1500);
+    }
+  },
+
+  reset() {
+    this.mode = 'off';
+    this._lastThought = null;
+    this._thinking = false;
+    this._paused = false;
+    this._log = [];
+    clearTimeout(this._timer);
+    this.hideButton();
+  }
+};
+
 // ── Boot ──────────────────────────────────────────────────
 window.addEventListener('load',()=>{
   if(DB.current&&DB.users[DB.current]){
@@ -6980,6 +8238,8 @@ const _origPromote=Engine.promote.bind(Engine);
 Engine.promote=function(st){
   fireLevel();
   if(window.Scene3D)window.Scene3D.setLevel(st.level+1);
+  // Pause the agent — player must choose their new role before play resumes
+  if(typeof Agent!=='undefined') Agent.pause('Level promotion — waiting for player to choose new role');
   return _origPromote(st);
 };
 
