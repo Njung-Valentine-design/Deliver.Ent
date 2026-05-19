@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="DELIVER">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#050814">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DELIVER</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -3086,93 +3092,22 @@ const SCENES={
   ]
 };
 const TENSIONS={
-  hospitality:['the hotel owner questions the ROI directly','guest experience scores dropped last week','a department head refused to attend the steering session','the F&B director is demanding scope additions mid-delivery','a key supplier contract expired and has not been renewed','two properties are receiving inconsistent rollout timelines','the brand team flagged a design deviation from the approved standard'],
-  retail:['the logistics partner flagged a capacity constraint','the ERP vendor changed their delivery timeline','two regions are running conflicting change programmes','the store operations team refuses to adopt the new process without more training','a post-implementation review from a previous wave was never actioned','the finance lead is questioning whether the benefits case still holds','a pilot store reported system issues that were not escalated to the programme'],
-  banking:['the compliance team raised a late-stage concern','the audit committee wants sight of all project assumptions','a data governance issue was escalated to the CRO','the change manager flagged that staff adoption is below target','a regulatory deadline has moved and now conflicts with the go-live plan','the front-office lead is refusing to release SME time for testing','the risk team identified a gap in the disaster recovery design'],
-  healthcare:['the clinical lead refused to sign off the pilot','a patient safety flag was raised in the steering meeting','the privacy office identified a gap in the current design','a consultant group is lobbying to delay implementation until after winter pressures','the IT team flagged a critical integration dependency that was not in scope','nursing staff have raised concerns about the impact on care workflows','the information governance team has placed a hold on the data migration'],
-  government:['a minister\'s office requested an early briefing','the procurement team is questioning the contract structure','a media inquiry about project delays was filed this morning','a freedom of information request was submitted for all project documents','the public accounts committee has flagged the programme in a recent report','a departmental restructure has left key decision roles unfilled','the external assurance reviewer has rated the project amber in the latest gateway'],
-  energy:['the ESG committee challenged the project\'s emissions impact','a capital reallocation request was submitted by the CFO','the regulator asked for a formal progress report','a site safety incident has triggered a temporary pause on field activities','the local community liaison group raised objections to the works schedule','an environmental impact assessment was reopened by the planning authority','the engineering lead flagged a design issue that requires a formal dispensation'],
-  airlines:['the union raised a formal concern about workforce impact','the safety board flagged a dependency on the legacy system','a schedule change disrupted the pilot group rollout','a rostering conflict has reduced crew availability for the training programme','the CAMO team identified a documentation gap that affects the airworthiness approval','a regulator audit is scheduled during the peak implementation window','ground handling staff are reporting that the new system is not fit for ramp conditions'],
-  manufacturing:['the plant manager refused the proposed lean changes','a supplier flagged a parts shortage affecting the timeline','the quality team identified a defect pattern in the pilot batch','a health and safety inspection flagged a compliance issue on the project floor','the union shop steward is requesting a formal consultation on the new process design','a second shift is refusing to trial the new system until the day shift issues are resolved','the engineering change order was rejected by the technical authority'],
-  construction:['the principal contractor has raised a formal delay claim against the client','a subcontractor walked off site following a payment dispute','the HSE inspector issued a prohibition notice on the north elevation works','ground conditions have proved significantly worse than the site investigation indicated','the local planning authority has issued a stop notice pending an environmental review','steel delivery has been delayed by eight weeks due to a port congestion issue','a design coordination error has been identified that affects the structural frame'],
-  oilgas:['the environmental regulator has requested a formal impact assessment before works can continue','a community liaison group has filed an objection with the planning authority','the rig operator has flagged a subsurface anomaly that requires engineering review','a contractor fatality has triggered a mandatory stand-down across all sites','the joint venture partner is challenging the cost allocation methodology','a well integrity issue has been identified requiring an unplanned workover','the OSPAR compliance report has surfaced a gap in the discharge monitoring regime'],
-  telecoms:['the spectrum licence application has been delayed by a regulatory challenge from a competitor','a major cell site landlord is refusing access pending lease renegotiation','the network operations centre flagged a critical path dependency on a legacy core system','the handset migration campaign is generating significant customer complaints','a local authority has refused planning permission for three mast installations','the SLA report shows four regions are below the 99.9 percent uptime threshold','a firmware update has caused unexpected outages across the eastern region'],
-  pharma:['the clinical investigator site has failed its FDA audit','interim trial data has triggered a safety monitoring board review','the CMO has flagged a contamination risk in the active pharmaceutical ingredient batch','IP counsel has identified a freedom-to-operate gap in a key target market','the regulatory submission has been placed on hold pending additional stability data','a key principal investigator has withdrawn from the trial citing workload pressure','the ethics committee has requested protocol amendments before the next patient cohort can be enrolled'],
-  datacenter:['the main power feed has tripped twice this week and UPS autonomy is under review','the hyperscaler client has issued a notice of concern regarding cooling redundancy','the commissioning team has identified a single point of failure in the fire suppression system','a key subcontractor has gone into administration mid-installation','the local grid operator has imposed a capacity constraint that affects the target PUE','a late design change to the raised floor layout has affected the cable containment route','the client has requested a third-party technical audit before accepting the facility'],
-  software:['the product owner added 14 stories to the sprint without removing scope','the DevOps pipeline broke overnight and blocked all deployments','a critical security vulnerability was found in a third-party dependency','40% of regression tests are failing after the last merge','two senior engineers are in open conflict over architectural direction','the cloud provider issued an unplanned pricing change that breaks the budget','the business stakeholder rejected three consecutive sprint reviews and is escalating to the CTO'],
-  logistics:['the primary carrier has suspended operations in three key corridors without notice','a customs clearance backlog is holding 900 units at the border crossing','the warehouse management system crashed during peak despatch','a driver shortage is reducing fleet utilisation below the contractual SLA threshold','a client has formally invoked the penalty clause citing three consecutive late deliveries','the fuel cost spike has made the current delivery model financially unviable','the operations manager reports the new routing algorithm is producing longer routes than before'],
-  beauty:['a key influencer partnership has publicly withdrawn their endorsement of the brand','the product formulation team has flagged a compliance gap with new EU cosmetics regulations','a franchise owner is withholding monthly fees and threatening legal action over territory exclusivity','the creative director has resigned mid-launch citing brand direction conflicts with the CEO','a TikTok campaign went viral for the wrong reasons — the community team is responding in real time','a major retail partner has delisted the hero SKU following a quality complaint cluster','the sustainability audit has revealed a supply chain ingredient that conflicts with the brand ethical charter']
+  hospitality:['the hotel owner questions the ROI directly','guest experience scores dropped last week','a department head refused to attend the steering session','the F&B director is demanding scope additions mid-delivery','a key supplier contract expired and has not been renewed','two properties are receiving inconsistent rollout timelines','the brand team flagged a design deviation from the approved standard','the GM is openly questioning the technology vendor\'s competence','front desk staff have reverted to paper-based workarounds','a rival hotel group announced a superior guest technology platform','the loyalty programme migration has lost 14% of historical points data','an owner has personally called to question the programme\'s value','the revenue management integration is producing incorrect rate recommendations','three senior managers have submitted a formal written objection','the brand standards auditor is arriving two weeks early'],
+  retail:['the logistics partner flagged a capacity constraint','the ERP vendor changed their delivery timeline','two regions are running conflicting change programmes','the finance lead challenged the benefits case','the store operations director will not release staff for testing','a post-implementation review from the last wave was never closed','a key integration is failing intermittently in the test environment','the regional manager sent an escalation email directly to the CEO','the procurement team is blocking a critical software licence renewal','customer-facing staff are discovering bugs faster than the dev team can fix them','the head of IT has publicly questioned the programme\'s architecture','an independent reviewer has rated the delivery confidence as amber-red','the payment gateway supplier has a contractual dispute outstanding','the ERP vendor\'s implementation lead has been replaced mid-project','two overseas territories are out of scope but are materially impacted'],
+  banking:['the compliance team raised a late-stage concern','the audit committee wants sight of all project assumptions','a data governance issue was escalated to the CRO','the change manager flagged that staff adoption is below target','a regulatory deadline has moved and now conflicts with the go-live plan','the model risk team has challenged the assumptions underpinning the business case','a parallel programme is consuming the shared SME pool','the head of retail banking has gone directly to the CEO with concerns','penetration testing has found a vulnerability in the new API layer','the vendor\'s key architect has resigned with three months of delivery remaining','treasury has queried the foreign exchange exposure in the programme budget','a whistleblower report has been filed against a team member','the change freeze window clashes with the critical integration test slot','an internal audit has been triggered mid-programme','the steering committee has not formally met in six weeks'],
+  healthcare:['the clinical lead refused sign-off on the pilot','a nursing union raised formal concerns','information governance flagged a consent documentation gap','the CMO requested a briefing before the next steering session','patient records are not migrating cleanly with a 14% error rate','a neighbouring trust\'s go-live failure has alarmed clinical staff here','the CQC has indicated it will examine the programme during its next inspection','the pharmacy interface has not been validated for medication reconciliation','a key clinical champion has resigned','winter pressures have reduced training capacity to below the agreed threshold','two integrated care board partners have withdrawn from the data sharing protocol','the mental health unit has raised specific data sensitivity concerns','clinical staff are reverting to paper mid-session creating patient safety risk','the digital maturity assessment rated two wards as not ready','a patient advocacy group wrote to the chief executive about data handling'],
+  government:['the procurement team questioned the contract structure','an FOI request was filed referencing the programme directly','the external gateway reviewer rated the project amber','the SRO role is temporarily vacant following a restructure','the PAC has listed this programme in its upcoming scrutiny session','the Cabinet Office requested a revised business case','a ministerial reshuffle has deprioritised the programme overnight','the Treasury has placed a hold on next-phase funding approval','the NAO has requested access to programme documentation','an opposition MP has tabled a written question about budget and timeline','the accounting officer has formally raised a value-for-money concern','the GDS technology assessment flagged the architecture as non-standard','a local authority partner has withdrawn following a change in leadership','departmental communications published a press release that overstates progress','the Cabinet Secretary has asked to be personally briefed'],
+  energy:['the ESG committee challenged the carbon accounting methodology','a CFO capital reallocation request threatened Q3 mobilisation','the planning authority issued an objection to the access road','a group-wide safety stand-down was triggered by a nearby incident','the JV partner is demanding governance changes mid-delivery','the grid connection application has been delayed by 8 months','the environmental impact assessment has been challenged by a residents group','a community liaison meeting became publicly confrontational','the decommissioning obligation has been triggered earlier than planned','the carbon intensity methodology has been challenged by an external auditor','a protest group has blocked the site access road for 48 hours','the offshore installation weather window is closing faster than the programme allows','a supply chain bottleneck for switchgear is on the critical path','the export cable lead time was not captured in the original programme','a regulator has formally opened a monitoring case on ESG reporting'],
+  airlines:['the union filed a formal grievance about the rostering system impact','the CAMO team found a documentation gap affecting airworthiness','a crew training backlog blocks rollout in two bases','the safety board flagged a legacy system dependency near end-of-life','ground handling staff at three airports are refusing to trial the system','an EASA airworthiness directive affects a system the programme was planning to retire','two pilot representatives are publicly opposing the new EFB rollout','the hub airport IT team has blocked the integration citing their own change freeze','the revenue management team challenged the passenger service system cutover window','a competitor\'s safety incident has caused the regulator to widen its review criteria','the new fuel management system has a load sheet integration defect','fleet configuration differences require the training programme to be redesigned','the CAA regulator has arrived for an unannounced compliance review','a data protection concern has been raised about crew data handled by the scheduling vendor','30 training days were cancelled in the last three weeks due to crew availability disputes'],
+  manufacturing:['the plant manager is refusing the proposed lean changes','a supplier flagged a parts shortage from week 8','the quality team found a defect pattern in the pilot batch','the union shop steward requested a formal consultation','the second shift team refused to trial the new system','the works council formally requested the automation impact assessment','the operations director is demanding a rollback to the manual process','a customer quality audit is scheduled during the system transition period','the plant director has escalated to the board that output targets are being disrupted','a trade union submitted a formal consultation request citing job security concerns','a robot arm calibration failure generated a batch of out-of-tolerance parts','the MES implementation created a data discrepancy between the shop floor and the ERP','a Kaizen event produced recommendations that conflict with the IT changes being deployed','an ISO recertification audit is scheduled during the transition window','three shift supervisors submitted a joint complaint about the new reporting interface'],
+  oilgas:['the JV partner challenged the cost allocation model','a drilling report showed the reservoir differs from the exploration model','an environmental NGO issued a public statement about site activity','a key contractor has entered financial difficulty','the regulatory authority requested a formal progress submission','a HAZOP review found a safety case gap that must be resolved before first oil','a pipeline route survey encountered unexploded ordnance requiring re-routing','the topsides module has failed weight tolerances requiring redesign','the fiscal metering system calibration has been challenged by the tax authority','a seabed survey revealed pipeline free-span violations requiring intervention','a helicopter transport restriction is limiting crew change frequency','the JV operator has invoked a sole risk provision with costs and schedule in dispute','the produced water treatment system is not meeting environmental discharge standards','a seismic event has triggered a mandatory platform inspection with production suspended','a third-party logistics provider has been sanctioned requiring supply chain reorganisation'],
+  telecoms:['the spectrum team flagged a co-channel interference issue','a civil works subcontractor is 3 weeks behind on mast foundations','customer migration is at 61% of plan with churn risk rising','backhaul capacity issues were found in the rural rollout zones','the regulator opened a formal monitoring case on SLA compliance','a planning application for 14 mast sites was refused by one authority','a roaming agreement has not been finalised with a coverage gap emerging','a landlord wayleave dispute is holding up mast erection on the critical path','the network operations centre flagged unexplained call drop rate increases','a fibre dig encountered asbestos with all works in that zone suspended','the legacy billing migration is generating incorrect invoices for 3% of business customers','an Ofcom monitoring report cited three technical non-compliance items','a civil infrastructure sharing arrangement has collapsed','the emergency services communication dependency has not been handed over by the incumbent','Ofcom issued a new spectrum usage obligation with a 6-month compliance deadline'],
+  pharma:['the biostatistics team found an anomaly in week-28 trial data','the FDA issued updated guidance affecting the submission timeline','a CRO is underperforming with patient recruitment 18% below plan','the IP team flagged a competitor publication overlapping with trial data','manufacturing compliance raised a concern about batch release documentation','a principal investigator site has been placed on clinical hold following a GCP audit','the safety monitoring board called an unscheduled interim review','stability data from the 18-month timepoint shows degradation outside specification','a patient dropout rate of 22% is threatening the statistical power of the trial','the regulatory dossier for the EU submission is missing a key module','a manufacturing process deviation has quarantined multiple batches','the drug substance manufacturer was issued an FDA warning letter with supply at risk','a cold chain failure during shipment compromised a batch of investigational product','a protocol deviation involving three patients needs assessment for trial integrity impact','two regulatory authorities have issued conflicting guidance on the same dossier aspect'],
+  datacenter:['the hyperscaler issued a formal notice of concern about commissioning timeline','a power redundancy fault was found during overnight testing','the cooling system is 8% below design spec','a penetration test found a vulnerability in the network management layer','the planning authority objected to the Phase 2 expansion permit','the generator load test failed with the automatic transfer switch not activating within tolerance','the Tier III certification identified a single point of failure in the UPS topology','the cable containment installation does not meet the fire stopping specification','the fuel storage licence renewal is pending blocking generator commissioning','the DCIM software vendor issued an end-of-life notice for the agreed platform version','the hyperscaler\'s independent technical auditor issued a punch list of 40 items','the earthing system does not comply with the current edition of BS 7671','a critical PDU was delivered with the wrong amperage rating with a 14-week reorder','a commissioning test failure in the fire suppression system has extended the programme','acoustic testing shows the cooling plant exceeds the planning noise condition at boundary'],
+  software:['the product owner added 14 stories mid-sprint without removing scope','the DevOps pipeline broke overnight blocking all deployments','a critical security vulnerability was found in a production dependency','two senior engineers are in open conflict about the architecture','QA reports 40% of regression tests failing after the last merge','a major refactoring created 120 unresolved merge conflicts across 6 branches','the on-call engineer escalated a memory leak degrading production performance','a GDPR subject access request revealed that user deletion is not working correctly','the database migration script has a logic error that could corrupt production records','a cloud provider cost anomaly shows spend at 340% above the monthly estimate','a legacy monolith dependency is blocking two microservices migrations','API rate limiting changes from a third party are breaking the customer onboarding flow','the business has requested a launch date the engineering team considers technically infeasible','a junior developer accidentally pushed credentials to a public repository','the design system was updated without communicating breaking changes leaving 14 components broken'],
+  logistics:['the primary carrier suspended operations in three corridors','a customs clearance backlog is holding 900 units at the border','the WMS crashed for 4 hours during peak despatch with orders stacking','a driver shortage reduced fleet utilisation below the SLA threshold','the fuel cost spike made the last-mile model financially unviable','a temperature excursion was flagged in the cold chain with a pharmaceutical client escalating','a strike by port workers is disrupting all inbound freight','the automated sortation system has a conveyor fault with hub throughput at 40%','a dangerous goods shipment was found to be incorrectly classified','a last-mile routing update increased delivery times in two urban zones','a driver hours violation was identified putting the operator licence at risk','a warehouse lease renewal has been refused with alternative storage needed within 90 days','a hazardous materials spillage in the warehouse triggered an HSE investigation','the reverse logistics process is generating a 28% error rate on returns','a new same-day delivery commitment from sales has not been reviewed for operational feasibility'],
+  beauty:['the creative director refused to sign off the brand guidelines three weeks before launch','a franchise partner is not meeting brand standards with guests posting on social media','a formula stability issue was flagged in the hero product ahead of global rollout','the brand ambassador\'s public statement contradicts the brand values','the retail buyer is threatening to delist the range unless exclusivity terms change','the digital team found a data privacy gap in the loyalty app','three salon directors say the new booking platform is reducing their retention scores','a TikTok review has gone viral for the wrong reasons','the packaging supplier confirmed a six-week delay on sustainable materials','the regulatory submission for the new active ingredient in Japan has stalled','a new sustainability claim is being challenged as greenwashing by a consumer group','a social listening report shows brand sentiment dropped 18 points in six weeks','the e-commerce migration has caused basket abandonment rates to spike at 78%','a manufacturing partner in Asia was flagged in a supply chain transparency audit','the loyalty programme restructure has generated backlash from high-value customers'],
 };
-const INBOX_POOL={
-  pressure:[
-    {subject:'Governance meeting prep',body:'I need your consolidated position paper before the meeting. Mixed signals from the team are a problem.',tone:'Pressure'},
-    {subject:'Escalation expected',body:'The steering committee will ask about the delay. Please confirm your stance before we walk in.',tone:'Pressure'},
-    {subject:'Budget query from Finance',body:'Finance is querying line items 3 and 7. They need supporting evidence by end of day.',tone:'Pressure'},
-    {subject:'Executive visibility',body:'The CEO has asked for a one-page summary of where the project stands. I need it by 4pm.',tone:'Pressure'},
-    {subject:'Steering pack overdue',body:'The steering pack was due yesterday. The chair has asked me to chase. What is the hold-up?',tone:'Pressure'},
-    {subject:'Board wants a briefing',body:'The board have asked for a 15-minute slot at the next session. I need your key messages today.',tone:'Pressure'},
-    {subject:'Sponsor losing confidence',body:'I have heard from two board members that confidence in the project is wavering. We need to talk.',tone:'Pressure'},
-    {subject:'Programme director review',body:'The programme director is asking all PMs for a written account of their top three risks by Friday.',tone:'Pressure'}
-  ],
-  risk:[
-    {subject:'Assumption gap identified',body:'Two core assumptions in the plan are not evidenced. This is an audit exposure if not resolved.',tone:'Risk'},
-    {subject:'Dependency not tracked',body:'The vendor dependency was not on the RAID log. This needs to be logged and owned immediately.',tone:'Risk'},
-    {subject:'Compliance concern',body:'Legal flagged a data handling gap that may affect the go-live timeline.',tone:'Risk'},
-    {subject:'Test environment failure',body:'The test environment went down last night. The testing window is now at serious risk.',tone:'Risk'},
-    {subject:'Resource gap emerging',body:'Two key SMEs have flagged they cannot commit the hours assumed in the plan. We have a gap.',tone:'Risk'},
-    {subject:'Scope creep flagged',body:'The business has informally agreed to three new requirements. None are in the approved scope.',tone:'Risk'},
-    {subject:'Vendor financial concern',body:'There are market rumours about our primary vendor\'s financial position. We should validate this.',tone:'Risk'},
-    {subject:'Integration test failure',body:'Last night\'s integration test failed on three of eight scenarios. The technical lead is concerned.',tone:'Risk'}
-  ],
-  positive:[
-    {subject:'Good visibility this week',body:'Your presentation to the board landed well. Several execs mentioned it positively.',tone:'Positive'},
-    {subject:'Team feedback',body:'The team appreciated the clarity you brought to the planning session. Morale is noticeably better.',tone:'Positive'},
-    {subject:'Sponsor alignment confirmed',body:'The sponsor confirmed support for the revised baseline. Good work getting that across the line.',tone:'Positive'},
-    {subject:'External recognition',body:'The programme office cited your project as an example of good governance in their quarterly report.',tone:'Positive'},
-    {subject:'Milestone delivered',body:'The team hit the milestone cleanly. The business stakeholder sent a note of thanks to the sponsor.',tone:'Positive'},
-    {subject:'Audit outcome',body:'The internal audit team completed their review and rated the project green. Well managed.',tone:'Positive'},
-    {subject:'User acceptance feedback',body:'Early UAT feedback is strong. Users are describing the solution as significantly better than expected.',tone:'Positive'},
-    {subject:'Finance approval',body:'Finance approved the revised budget request without challenge. Your business case was well constructed.',tone:'Positive'}
-  ],
-  noise:[
-    {subject:'Meeting reschedule request',body:'Can we move Thursday\'s session? Two attendees have a conflict.',tone:'Admin'},
-    {subject:'Training reminder',body:'Mandatory compliance training is due this month for all project staff.',tone:'Admin'},
-    {subject:'Resource request',body:'One of your team members has been asked to support another programme next sprint.',tone:'Admin'},
-    {subject:'Room booking confirmation',body:'The steering room is confirmed for next Tuesday. Dial-in details are attached.',tone:'Admin'},
-    {subject:'Contractor timesheet query',body:'Payroll flagged a discrepancy in last month\'s contractor timesheets. Can you review and approve?',tone:'Admin'},
-    {subject:'Document archive request',body:'The PMO is asking all projects to archive completed phase documentation by end of month.',tone:'Admin'},
-    {subject:'Away day logistics',body:'Please confirm attendance for the team away day. Catering numbers are needed by Wednesday.',tone:'Admin'},
-    {subject:'System access request',body:'Three new team members need access to the project management tool. Can you approve their requests?',tone:'Admin'}
-  ]
-};
-const ACHIEVEMENT_META={
-  first_turn:{icon:'🎯',label:'First Move',desc:'Made your first decision'},
-  survive_5:{icon:'💪',label:'Survivor',desc:'Reached turn 5'},
-  survive_20:{icon:'🏅',label:'Endurance',desc:'Reached turn 20'},
-  reputation:{icon:'⭐',label:'Strong Brand',desc:'Reputation above 70'},
-  balanced:{icon:'⚖️',label:'Balanced Leader',desc:'Low stress after turn 5'},
-  promoted:{icon:'📈',label:'Promoted',desc:'Earned first promotion'},
-  transfer:{icon:'🌐',label:'Industry Transfer',desc:'Moved to a new industry'},
-  comeback:{icon:'🔥',label:'Comeback',desc:'Recovered from critical metrics'},
-  governance_master:{icon:'📋',label:'Governance Master',desc:'5 governance decisions'},
-  people_first:{icon:'🤝',label:'People First',desc:'5 balanced decisions'},
-  no_setback:{icon:'🛡️',label:'No Setbacks',desc:'Reached level 3 without XP penalty'},
-  crisis_handler:{icon:'🚨',label:'Crisis Handler',desc:'Resolved a crisis with a balanced approach'},
-  political_master:{icon:'🎭',label:'Political Master',desc:'Maintained political capital above 70 for 5 turns'},
-  stakeholder_champion:{icon:'🤝',label:'Stakeholder Champion',desc:'Kept all stakeholders above 60 trust for a full level'},
-  budget_guardian:{icon:'💰',label:'Budget Guardian',desc:'Completed a level with budget spend under 60%'},
-  delivery_machine:{icon:'⚙️',label:'Delivery Machine',desc:'Reached 90+ delivery metric'},
-  mentor_bond:{icon:'🎓',label:'Mentor Bond',desc:'Received mentor advice 5 times'},
-  reputation_builder:{icon:'⭐',label:'Reputation Builder',desc:'Reached 80+ reputation'},
-  ethical_leader:{icon:'⚖️',label:'Ethical Leader',desc:'Completed 3 levels without an aggressive decision'},
-  industry_veteran:{icon:'🏭',label:'Industry Veteran',desc:'Played in 5 different industries'},
-  board_survivor:{icon:'👔',label:'Board Survivor',desc:'Passed a board presentation successfully'}
-};
-
-// ── UI ─────────────────────────────────────────────────────
-
-// ── Progressive Elaboration Data ─────────────────────────
-
 const PEOPLE_REACTIONS={
   balanced:{
     high:["That escalation was the right call.","Exactly the transparency I needed.","Good call. I\'ll back you on this.","Clear thinking under pressure.","This is why I trust your judgment.","You handled that with real authority.","I\'ll be citing this one in the next steering meeting.","That\'s the kind of clarity that builds reputations.","Exactly what I needed to hear, and when I needed to hear it.","Decisive and considered. Well done."],
@@ -5967,8 +5902,21 @@ const Engine={
       st.sponsorBalancedStreak=0;
       if(type==='passive'||type==='aggressive'){
         if(Math.random()<0.35&&idx<3){idx++;st.sponsorStage=stages[idx];
-          if(idx>=2)UI.toast(`⚠️ Sponsor relationship: ${st.sponsorStage}`,3000);
-          if(idx===3){st.dashboard.stakeholder=clamp(st.dashboard.stakeholder-10);st.dashboard.reputation=clamp(st.dashboard.reputation-8);}
+          if(idx===2){
+            st.events.unshift(`⚠️ SPONSOR: ${st.people[0].name} is now Concerned. Two more negative turns → Withdrawing.`);
+            st.dashboard.stakeholder=clamp(st.dashboard.stakeholder-6);
+            st.dashboard.reputation=clamp(st.dashboard.reputation-4);
+            UI.toast(`⚠️ Sponsor now Concerned — Stakeholder -6`,3000);
+          }
+          if(idx===3){
+            st.events.unshift(`🚨 SPONSOR CRITICAL: ${st.people[0].name} is Withdrawing support. Immediate action required.`);
+            st.dashboard.stakeholder=clamp(st.dashboard.stakeholder-12);
+            st.dashboard.delivery=clamp(st.dashboard.delivery-6);
+            st.dashboard.reputation=clamp(st.dashboard.reputation-8);
+            st.dashboard.morale=clamp(st.dashboard.morale-6);
+            Sound.play('warn');
+            UI.toast(`🚨 Sponsor Withdrawing — Stakeholder -12, Delivery -6`,4000);
+          }
         }
       }
     }
@@ -6300,11 +6248,15 @@ const Game={
     UI.closeModal('boardModal');
     STATE.boardPresentationDone=true;
     if(typeof Agent!=='undefined')Agent.resume();
+    const _boardHostile=STATE.dashboard.compliance<50?2:STATE.dashboard.stakeholder<55?1:0;
     if(action==='transparent'){
-      STATE.dashboard.reputation=clamp(STATE.dashboard.reputation+8);
+      const _bonus=Math.max(4,8-_boardHostile*2);
+      STATE.dashboard.reputation=clamp(STATE.dashboard.reputation+_bonus);
       STATE.dashboard.stakeholder=clamp(STATE.dashboard.stakeholder+6);
       STATE.politicalCapital=clamp((STATE.politicalCapital||40)+10,0,100);
-      UI.toast('Board appreciated full transparency. Trust and reputation improved.',3000);
+      const _msg=_boardHostile>=2?'Board presentation complete. Two board members asked hostile questions — your transparency held them at bay. Reputation +'+_bonus+'.':_boardHostile===1?'Board was cautious but your transparency carried the room. Reputation +'+_bonus+'.':'Board appreciated full transparency. Trust and reputation improved.';
+      UI.toast(_msg,4000);
+      STATE.events.unshift('📋 BOARD: Presentation delivered transparently.'+(_boardHostile>0?' '+_boardHostile+' challenging questions fielded.':''));
       STATE.objectivesCompleted.includes('board_transparent')||STATE.objectivesCompleted.push('board_transparent');
     }else if(action==='spin'){
       STATE.dashboard.reputation=clamp(STATE.dashboard.reputation+4);
@@ -6916,10 +6868,11 @@ const Render={
   evm(){
     const e=STATE.evm;
     return `<div class="three">
-      <div class="kpi"><strong style="color:${e.SPI>=1?'var(--green)':'var(--red)'}">${e.SPI}</strong><span class="muted">SPI</span><small class="muted" style="display:block;font-size:10px">${e.SPI>=1?'On schedule':'Behind schedule'}</small></div>
-      <div class="kpi"><strong style="color:${e.CPI>=1?'var(--green)':'var(--red)'}">${e.CPI}</strong><span class="muted">CPI</span><small class="muted" style="display:block;font-size:10px">${e.CPI>=1?'Within budget':'Over budget'}</small></div>
+      <div class="kpi"><strong style="color:${e.SPI>=1?'var(--green)':e.SPI>=0.85?'var(--gold)':'var(--red)'}">${e.SPI}</strong><span class="muted">SPI</span><small class="muted" style="display:block;font-size:10px">${e.SPI>=1?'On schedule':e.SPI>=0.85?'Slight delay':'Behind schedule'}</small></div>
+      <div class="kpi"><strong style="color:${e.CPI>=1?'var(--green)':e.CPI>=0.85?'var(--gold)':'var(--red)'}">${e.CPI}</strong><span class="muted">CPI</span><small class="muted" style="display:block;font-size:10px">${e.CPI>=1?'Within budget':e.CPI>=0.85?'Minor overrun':'Over budget'}</small></div>
       <div class="kpi"><strong>${money(e.AC)}</strong><span class="muted">Actual Cost</span></div>
-    </div><br>
+    </div>
+    ${(()=>{const bac=STATE.budget||500000;const eac=e.CPI>0?Math.round(bac/e.CPI):bac;const vac=bac-eac;const tcpi=e.CPI>0&&(bac-(e.EV||0))>0?(bac-(e.EV||0))/(bac-(e.AC||0)):1;const msg=e.SPI<0.9&&e.CPI<0.9?'Both schedule and cost are under pressure — recovery action needed on two fronts.':e.SPI<0.9?'Schedule is the primary concern. Address it before it compounds.':e.CPI<0.9?'Cost overrun is the main risk. Budget trajectory is unsustainable.':e.SPI>=1.05&&e.CPI>=1.05?'Exceptional — both ahead of baseline. Protect this position.':'Programme performing within acceptable tolerance.';return `<div class="three" style="margin-bottom:10px"><div class="kpi"><strong style="color:${eac<=bac?'var(--green)':'var(--red)'}">${money(eac)}</strong><span class="muted">EAC</span><small class="muted" style="display:block;font-size:10px">Est. at Completion</small></div><div class="kpi"><strong style="color:${vac>=0?'var(--green)':'var(--red)'}">${vac>=0?'+':''}${money(vac)}</strong><span class="muted">VAC</span><small class="muted" style="display:block;font-size:10px">Variance at Compl.</small></div><div class="kpi"><strong style="color:${tcpi<=1.1?'var(--green)':tcpi<=1.2?'var(--gold)':'var(--red)'}">${tcpi.toFixed(2)}</strong><span class="muted">TCPI</span><small class="muted" style="display:block;font-size:10px">${tcpi<=1?'Achievable':'Efficiency needed'}</small></div></div><div class="card" style="margin-bottom:10px;padding:8px 12px;border-left:3px solid ${e.SPI>=0.9&&e.CPI>=0.9?'var(--green)':e.SPI>=0.8&&e.CPI>=0.8?'var(--gold)':'var(--red)'}"><p style="font-size:12px;margin:0;color:var(--text)">${msg}</p></div>`;})()}<br>
     <div class="card"><p class="section">Budget Tracker</p>
       <div class="between"><span class="soft">Total Budget</span><b>${money(STATE.budget)}</b></div>
       <div class="between" style="margin-top:6px"><span class="soft">Spent</span><b style="color:${STATE.budgetSpent>STATE.budget*0.8?'var(--red)':'var(--gold)'}">${money(STATE.budgetSpent||0)}</b></div>
@@ -6987,11 +6940,17 @@ const Render={
     ${STATE.careerNarrative.length?`<div class="card"><p class="section">Career Story</p>${STATE.careerNarrative.map(n=>`<div class="email"><b>Level ${n.level}: ${n.title}</b><p class="soft">${n.text}</p></div>`).join('')}</div>`:''}`;
   },
   wellness(){
-    return `<div class="card"><p class="section">Wellness</p>
-      ${this.metrics(STATE.wellness)}
-      ${STATE.dashboard.burnout>70?`<div class="setback">⚠️ Burnout is critically high. Delivery quality and decision-making are now impaired. Avoid aggressive moves.</div>`:''}
-      <p class="muted">Stress and sleep influence future morale, delivery quality, and decision consistency.</p>
-    </div>`;
+    const d=STATE.dashboard||{};const burn=d.burnout||20;const mor=d.morale||60;
+    const people=STATE.people||[];
+    const tier=burn>70?{l:'Critical',c:'var(--red)',i:'🔥',m:'Above 70% — all metrics decay automatically every turn. Play Balanced exclusively to recover.'}:burn>55?{l:'Elevated',c:'var(--orange)',i:'⚠️',m:'Above 55% — one more aggressive decision puts you in the danger zone.'}:burn>35?{l:'Moderate',c:'var(--gold)',i:'⚡',m:'Manageable. Balanced decisions reduce burnout by 2 per turn.'}:{l:'Healthy',c:'var(--green)',i:'✅',m:'Team stress is well managed. Current decision pattern is sustainable.'};
+    const teamCards=people.slice(0,4).map((p,i)=>{
+      const stress=Math.min(100,Math.max(0,burn+(i%2===0?8:-5)+(mor<40?15:0)));
+      const sc=stress>70?'var(--red)':stress>50?'var(--gold)':'var(--green)';
+      const sl=stress>70?'Burned out':stress>50?'Under pressure':stress>35?'Managing':'Engaged';
+      const risk=stress>70?`Risk: ${p.name} may make errors or raise a formal concern.`:stress>50?`Watch: ${p.name} needs recognition or performance will slip.`:'';
+      return `<div class="email ${stress>70?'urgent':''}" style="margin-bottom:8px"><div class="between"><div><b style="font-size:12px">${sanitise(p.name)}</b><span class="muted" style="font-size:10px;margin-left:6px">${sanitise(p.role)}</span></div><span style="font-size:10px;font-weight:700;color:${sc}">${sl}</span></div><div style="height:4px;background:var(--line);border-radius:2px;margin:6px 0"><div style="height:4px;border-radius:2px;background:${sc};width:${stress}%"></div></div>${risk?`<p style="font-size:11px;color:var(--muted);margin:2px 0">${risk}</p>`:''}</div>`;
+    }).join('');
+    return `<div class="card" style="margin-bottom:10px"><div class="between" style="margin-bottom:8px"><p class="section" style="margin:0">Team Wellness</p><span style="font-size:11px;font-weight:700;color:${tier.c}">${tier.i} ${tier.l}</span></div>${this.metrics(STATE.wellness)}<div style="padding:8px 10px;background:rgba(255,255,255,.03);border-radius:6px;border-left:3px solid ${tier.c};margin-top:8px"><p style="font-size:12px;color:var(--text);margin:0">${tier.m}</p></div></div>${teamCards?`<div class="card" style="margin-bottom:10px"><p class="section">Individual Stress Indicators</p>${teamCards}</div>`:''}${burn>50?`<div class="card" style="margin-top:10px;border-color:var(--green)"><p class="section" style="color:var(--green)">Recovery Actions</p><p class="soft" style="font-size:12px">• 3 consecutive Balanced decisions = Burnout -6 total<br>• Aggressive decisions add +8 Burnout each<br>• Above 70%: all metrics decay automatically every turn</p></div>`:''}`;
   },
   brand(){
     const b=STATE.brand||{};
@@ -7278,7 +7237,7 @@ const Render={
     const narrativeHtml=narrativeParts.map(p=>`<p style="font-size:12px;line-height:1.7;margin:0 0 10px;color:var(--text)">${p}</p>`).join('');
     // ── Decision pattern bars ─────────────────────────────
     const recentFive=history.slice(0,5);
-    const questions=DEBRIEF_QUESTIONS;
+    const questions=typeof getDynamicDebriefQuestions==='function'?getDynamicDebriefQuestions(STATE):DEBRIEF_QUESTIONS;
     const _failBars=['balanced','governance','aggressive','passive'].map(t=>{
       const col=t==='balanced'?'var(--green)':t==='governance'?'var(--blue)':t==='aggressive'?'var(--red)':'var(--muted)';
       const cnt=styleCounts[t]||0;
@@ -7865,6 +7824,27 @@ Which option do you choose? Identify the type from the wording, apply the golden
     this.hideButton();
   }
 };
+
+// ── Dynamic debrief questions ──────────────────────────────
+function getDynamicDebriefQuestions(st){
+  const q=[];
+  const styles=st.styleHistory||[];
+  const aggCount=styles.filter(x=>x==='aggressive').length;
+  const passCount=styles.filter(x=>x==='passive').length;
+  const d=st.dashboard||{};
+  q.push('What single decision in this level had the most impact on the outcome — and why did it work?');
+  if(aggCount>=3)q.push('You made '+aggCount+' aggressive decisions this level. What triggered each one, and was the schedule gain worth the morale and burnout cost?');
+  else if(aggCount===0)q.push('You completed this level without any aggressive decisions. Was there a moment you were tempted — and what stopped you?');
+  if(passCount>=3)q.push('You made '+passCount+' passive decisions. What were you avoiding? Were those avoidances justified in hindsight?');
+  if(d.burnout>60)q.push('Burnout reached '+Math.round(d.burnout)+'% this level. At what point did you notice it becoming a problem, and what could have prevented it?');
+  if(d.stakeholder<50)q.push('Stakeholder confidence fell to '+Math.round(d.stakeholder)+'%. Which specific decision or pattern caused the most damage to that relationship?');
+  if(st.sponsorStage==='Withdrawing'||st.sponsorStage==='Concerned')q.push('The sponsor reached '+st.sponsorStage+' status. What does that tell you about how to manage upward on your next level?');
+  if((st._continuedFromFailure||0)>0)q.push('You chose to continue after a career setback rather than restart. What does that decision reveal about your attitude to failure and recovery?');
+  if(st.level>=7)q.push('At this career level, the stakes are real. Was there a decision where you felt the full weight of accountability? How did you manage it?');
+  if(aggCount===0&&passCount===0)q.push('You played a clean level — no aggressive and no passive decisions. Was there a point where the discipline was hard to maintain?');
+  if(!q[q.length-1])q.push('What would a more experienced version of you have done differently in this level?');
+  return q.slice(0,6);
+}
 
 // ── Boot ──────────────────────────────────────────────────
 window.addEventListener('load',()=>{
@@ -9081,4 +9061,113 @@ function getPhaseTimeline(level, turn, turnLimit){
   </div>
 </div>
 
-</html>
+</htmlconst INBOX_POOL={
+  pressure:[
+    {subject:'Governance meeting prep',body:'I need your consolidated position paper before the meeting. Mixed signals from the team are a problem.',tone:'Pressure'},
+    {subject:'Escalation expected',body:'The steering committee will ask about the delay. Please confirm your stance before we walk in.',tone:'Pressure'},
+    {subject:'Budget query from Finance',body:'Finance is querying line items 3 and 7. They need supporting evidence by end of day.',tone:'Pressure'},
+    {subject:'Executive visibility',body:'The CEO has asked for a one-page summary of where the project stands. I need it by 4pm.',tone:'Pressure'},
+    {subject:'Steering pack overdue',body:'The steering pack was due yesterday. The chair has asked me to chase. What is the hold-up?',tone:'Pressure'},
+    {subject:'Board wants a briefing',body:'The board have asked for a 15-minute slot at the next session. I need your key messages today.',tone:'Pressure'},
+    {subject:'Sponsor losing confidence',body:'I have heard from two board members that confidence in the project is wavering. We need to talk.',tone:'Pressure'},
+    {subject:'Programme director review',body:'The programme director is asking all PMs for a written account of their top three risks by Friday.',tone:'Pressure'},
+    {subject:'CFO escalation',body:'The CFO has formally asked for a budget variance explanation. This needs to go via me first.',tone:'Pressure'},
+    {subject:'Legal wants to review',body:'Legal has asked to see the vendor contract before the next payment milestone is approved.',tone:'Pressure'},
+    {subject:'Stakeholder complaint received',body:'A senior business stakeholder has formally complained about the pace of delivery. We need a response.',tone:'Pressure'},
+    {subject:'Milestone overdue',body:'The external milestone tracker shows us as amber on two items. The client has flagged this.',tone:'Pressure'},
+    {subject:'Risk committee request',body:'The risk committee wants a live briefing on the programme top three risks before their session.',tone:'Pressure'},
+    {subject:'Audit team scheduling',body:'Internal audit has confirmed dates for their mid-programme review. They want access to the RAID log.',tone:'Pressure'},
+    {subject:'Sponsor demanding results',body:'The sponsor has said in no uncertain terms: visible progress by next week or they escalate upward.',tone:'Pressure'},
+    {subject:'Comms team briefing',body:'Comms need to know if there is anything they should be aware of before the press release next week.',tone:'Pressure'},
+    {subject:'Programme health report',body:'The PMO is publishing the monthly programme health report. You are currently rated amber. Confirm or challenge.',tone:'Pressure'},
+    {subject:'Executive walkthrough',body:'The CEO is doing a walkthrough of active programmes next Thursday. I need your 3-minute summary.',tone:'Pressure'},
+    {subject:'Board paper contribution',body:'The board paper is being compiled. You need to contribute your section by 9am tomorrow.',tone:'Pressure'},
+    {subject:'Partner organisation escalation',body:'Our delivery partner has escalated to their CEO. Their CEO has written to ours. Action required.',tone:'Pressure'},
+    {subject:'Political sensitivity note',body:'I have been told this programme is now in the minister brief. Everything you do will be visible.',tone:'Pressure'},
+    {subject:'Quarterly performance review',body:'The quarterly programme review is in three days. Prepare a clear narrative on the challenges and your plan.',tone:'Pressure'},
+    {subject:'Change authority request',body:'The change authority wants a written briefing before approving the next phase gate.',tone:'Pressure'},
+    {subject:'Headcount query',body:'HR is asking for confirmation of contractor headcount and roles. Please provide by tomorrow.',tone:'Pressure'},
+    {subject:'Regulator contact',body:'The regulator has made direct contact asking about the programme compliance position.',tone:'Pressure'},
+  ],
+  risk:[
+    {subject:'Assumption gap identified',body:'Two core assumptions in the plan are not evidenced. This is an audit exposure if not resolved.',tone:'Risk'},
+    {subject:'Dependency not tracked',body:'The vendor dependency was not on the RAID log. This needs to be logged and owned immediately.',tone:'Risk'},
+    {subject:'Compliance concern',body:'Legal flagged a data handling gap that may affect the go-live timeline.',tone:'Risk'},
+    {subject:'Test environment failure',body:'The test environment went down last night. The testing window is now at serious risk.',tone:'Risk'},
+    {subject:'Resource gap emerging',body:'Two key SMEs have flagged they cannot commit the hours assumed in the plan. We have a gap.',tone:'Risk'},
+    {subject:'Scope creep flagged',body:'The business has informally agreed to three new requirements. None are in the approved scope.',tone:'Risk'},
+    {subject:'Vendor financial concern',body:'There are market rumours about our primary vendor financial position. We should validate this.',tone:'Risk'},
+    {subject:'Integration test failure',body:'Last night integration test failed on three of eight scenarios. The technical lead is concerned.',tone:'Risk'},
+    {subject:'Single point of failure',body:'Two team members hold all the knowledge on a critical system component. This is a programme risk.',tone:'Risk'},
+    {subject:'Regulatory change alert',body:'New regulatory guidance has been issued that may require design changes. Review by end of week needed.',tone:'Risk'},
+    {subject:'Security gap identified',body:'The security review flagged a gap in the access control design. This needs resolution before go-live.',tone:'Risk'},
+    {subject:'Budget burn rate warning',body:'The current burn rate projects a budget shortfall in 6 weeks. Finance have been informally alerted.',tone:'Risk'},
+    {subject:'Third party delivery risk',body:'Our primary subcontractor has not submitted a revised programme. Their delivery is now in doubt.',tone:'Risk'},
+    {subject:'Data migration risk',body:'A 6% duplication rate has been found in the source data. Migration integrity is at risk.',tone:'Risk'},
+    {subject:'Critical path compression',body:'Three critical path activities have slipped. There is now zero float on the delivery milestone.',tone:'Risk'},
+    {subject:'Change freeze conflict',body:'The IT change freeze window overlaps with our planned go-live slot. We need to escalate.',tone:'Risk'},
+    {subject:'Licence expiry risk',body:'A software licence expires in 30 days. Renewal has not been approved. This blocks delivery.',tone:'Risk'},
+    {subject:'Skill gap alert',body:'A gap analysis reveals the team lacks a critical skill for the next delivery phase.',tone:'Risk'},
+    {subject:'Parallel programme conflict',body:'A parallel programme is consuming the same business SME pool. We are both being deprioritised.',tone:'Risk'},
+    {subject:'Early warning: quality gate',body:'The quality gate is in 8 days. Current pass rate in testing is 67% which is below the 85% threshold.',tone:'Risk'},
+    {subject:'Procurement risk',body:'Procurement has flagged a process risk on the contract extension. We may need to retender.',tone:'Risk'},
+    {subject:'Capacity constraint',body:'The infrastructure team has confirmed they cannot support go-live in the original window. It must move.',tone:'Risk'},
+    {subject:'Contractual exposure',body:'Legal has flagged a clause in the vendor contract that creates liability if we miss the milestone.',tone:'Risk'},
+    {subject:'Dependency team withdrawal',body:'The team owning a key dependency has formally said they cannot meet the agreed date.',tone:'Risk'},
+    {subject:'Health and safety flag',body:'The H&S team has flagged a potential issue on site. We need to respond before the inspection.',tone:'Risk'},
+  ],
+  positive:[
+    {subject:'Good visibility this week',body:'Your presentation to the board landed well. Several execs mentioned it positively.',tone:'Positive'},
+    {subject:'Team feedback',body:'The team appreciated the clarity you brought to the planning session. Morale is noticeably better.',tone:'Positive'},
+    {subject:'Sponsor alignment confirmed',body:'The sponsor confirmed support for the revised baseline. Good work getting that across the line.',tone:'Positive'},
+    {subject:'External recognition',body:'The programme office cited your project as an example of good governance in their quarterly report.',tone:'Positive'},
+    {subject:'Milestone delivered',body:'The team hit the milestone cleanly. The business stakeholder sent a note of thanks to the sponsor.',tone:'Positive'},
+    {subject:'Audit outcome',body:'The internal audit team completed their review and rated the project green. Well managed.',tone:'Positive'},
+    {subject:'User acceptance feedback',body:'Early UAT feedback is strong. Users are describing the solution as significantly better than expected.',tone:'Positive'},
+    {subject:'Finance approval',body:'Finance approved the revised budget request without challenge. Your business case was well constructed.',tone:'Positive'},
+    {subject:'Stakeholder praise',body:'A senior stakeholder mentioned you specifically in the leadership team meeting as an example to follow.',tone:'Positive'},
+    {subject:'Pilot site success',body:'The pilot site go-live was clean. The site lead has already sent a congratulations message to the team.',tone:'Positive'},
+    {subject:'Governance rating improved',body:'The external assurance reviewer has improved the programme rating from amber to green.',tone:'Positive'},
+    {subject:'Board confidence high',body:'I have had informal feedback that the board confidence in the programme is at its highest this cycle.',tone:'Positive'},
+    {subject:'Regulator satisfaction',body:'The regulator confirmed that the programme compliance position is the strongest in the sector.',tone:'Positive'},
+    {subject:'Vendor milestone delivered',body:'The vendor delivered the module on time and to spec. The team is ahead of the testing plan.',tone:'Positive'},
+    {subject:'Team cohesion noted',body:'The programme director noted that your team has the highest cohesion score in the portfolio this quarter.',tone:'Positive'},
+    {subject:'Political support secured',body:'The minister office has formally backed the programme in the cross-departmental review.',tone:'Positive'},
+    {subject:'Client satisfaction survey',body:'The client satisfaction survey came back at 4.6 out of 5 for programme management quality.',tone:'Positive'},
+    {subject:'Media coverage positive',body:'The trade press has published a positive feature on the programme. Leadership is pleased.',tone:'Positive'},
+    {subject:'Award nomination',body:'The PMO has nominated this programme for the Portfolio Delivery Excellence award.',tone:'Positive'},
+    {subject:'Clinical endorsement',body:'The chief clinical officer has formally endorsed the implementation approach. A significant milestone.',tone:'Positive'},
+    {subject:'Budget returned',body:'Finance has approved an underspend return and ring-fenced it for programme risk mitigation.',tone:'Positive'},
+    {subject:'Partner feedback',body:'Our JV partner said this is the best-governed programme they have been involved in for three years.',tone:'Positive'},
+    {subject:'Quality gate passed',body:'The quality gate has been passed with 94% test completion. The sign-off is confirmed.',tone:'Positive'},
+    {subject:'Industry benchmark cited',body:'A consultancy has included this programme as a case study in their industry benchmarking report.',tone:'Positive'},
+    {subject:'Headhunter interest',body:'A headhunter contacted the PMO asking for your name. Your reputation is travelling.',tone:'Positive'},
+  ],
+  noise:[
+    {subject:'Meeting reschedule request',body:'Can we move Thursday session? Two attendees have a conflict.',tone:'Admin'},
+    {subject:'Training reminder',body:'Mandatory compliance training is due this month for all project staff.',tone:'Admin'},
+    {subject:'Resource request',body:'One of your team members has been asked to support another programme next sprint.',tone:'Admin'},
+    {subject:'Room booking confirmation',body:'The steering room is confirmed for next Tuesday. Dial-in details are attached.',tone:'Admin'},
+    {subject:'Contractor timesheet query',body:'Payroll flagged a discrepancy in last month contractor timesheets. Can you review and approve?',tone:'Admin'},
+    {subject:'Document archive request',body:'The PMO is asking all projects to archive completed phase documentation by end of month.',tone:'Admin'},
+    {subject:'Away day logistics',body:'Please confirm attendance for the team away day. Catering numbers are needed by Wednesday.',tone:'Admin'},
+    {subject:'System access request',body:'Three new team members need access to the project management tool. Can you approve their requests?',tone:'Admin'},
+    {subject:'Newsletter contribution',body:'The comms team is compiling the internal newsletter and would like a project update paragraph.',tone:'Admin'},
+    {subject:'Parking allocation',body:'Site services have asked for the list of staff requiring parking permits for the new building.',tone:'Admin'},
+    {subject:'IT equipment request',body:'Two team members have flagged that their laptops are due for refresh. Can you approve the order?',tone:'Admin'},
+    {subject:'Onboarding request',body:'A new contractor starts Monday. They need a buddy and a project induction session.',tone:'Admin'},
+    {subject:'Budget code update',body:'Finance has updated the project budget codes. All purchase orders from this week need the new code.',tone:'Admin'},
+    {subject:'Lessons learned contribution',body:'The PMO is compiling the lessons learned library. Can you contribute three items from this phase?',tone:'Admin'},
+    {subject:'Social event invite',body:'The team is organising an informal social next Friday. Can you confirm numbers by Thursday?',tone:'Admin'},
+    {subject:'Software licence renewal',body:'IT has flagged that three tool licences expire next month. Please approve the renewal.',tone:'Admin'},
+    {subject:'Reference request',body:'A former team member has asked for a reference. They have given your name to a potential employer.',tone:'Admin'},
+    {subject:'Audit schedule confirmation',body:'Finance audit is scheduled for next month. Please confirm that the project files are up to date.',tone:'Admin'},
+    {subject:'Annual leave request',body:'Two team members have submitted leave requests for the go-live window. Please review and respond.',tone:'Admin'},
+    {subject:'Wellbeing check-in',body:'HR is running a team wellbeing survey this week. Please remind your team to complete it.',tone:'Admin'},
+    {subject:'Badge renewal',body:'Site security has flagged that four team member access badges expire next week.',tone:'Admin'},
+    {subject:'Health and safety briefing',body:'All project staff on site need to complete the updated H&S briefing by end of week.',tone:'Admin'},
+    {subject:'Conference invitation',body:'You have been invited to speak at the PMO annual conference on delivery best practice.',tone:'Admin'},
+    {subject:'Business card reorder',body:'The print team is doing a bulk business card order. Please submit your details by Friday.',tone:'Admin'},
+    {subject:'Charity fundraiser',body:'The office charity committee is organising a fundraiser. Any involvement from your team would be welcome.',tone:'Admin'},
+  ]
+};>
