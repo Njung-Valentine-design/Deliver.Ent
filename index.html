@@ -250,7 +250,7 @@ label{
   position:sticky;top:0;z-index:6;
   background:rgba(2,4,8,.92);
   border-bottom:1px solid var(--line2);
-  padding:10px 166px;
+  padding:10px 24px;
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
 }
@@ -693,7 +693,7 @@ canvas.metric-spark{border-radius:3px;display:block}
   display:flex;align-items:center;justify-content:center;
   font-size:13px;flex-shrink:0;
 }
-.agent-name{font-size:11px;font-weight:700;color:#64dcff;letter-spacing Ramkumar.05em}
+.agent-name{font-size:11px;font-weight:700;color:#64dcff;letter-spacing:0.05em}
 .agent-role{font-size:10px;color:var(--muted)}
 .agent-reasoning{
   font-size:12px;color:var(--text);line-height:1.6;
@@ -1024,7 +1024,7 @@ canvas.radar-canvas{border-radius:8px}
 .scene-manufacturing{border-color:rgba(255,107,107,.3);background:linear-gradient(135deg,rgba(255,107,107,.04),transparent)}
 .scene-oilgas{border-color:rgba(255,184,108,.3);background:linear-gradient(135deg,rgba(255,140,0,.04),transparent)}
 .scene-telecoms{border-color:rgba(0,212,255,.3);background:linear-gradient(135deg,rgba(0,212,255,.04),transparent)}
-.scene-pharma{border-color:rgba(255,121,198,.3);background:linear-gradient(135deg,rgba(100,255,218,.04),transparent)}
+.scene-pharma{border-color:rgba(255,121,198,.3);background:linear-gradient(100,255,218,.04),transparent)}
 .scene-datacenter{border-color:rgba(87,166,255,.3);background:linear-gradient(135deg,rgba(87,166,255,.04),transparent)}
 .scene-software{border-color:rgba(100,255,218,.3);background:linear-gradient(135deg,rgba(100,255,218,.04),transparent)}
 .scene-logistics{border-color:rgba(255,184,108,.3);background:linear-gradient(135deg,rgba(255,184,108,.04),transparent)}
@@ -1066,7 +1066,7 @@ canvas.radar-canvas{border-radius:8px}
   50%{transform:scale(1.08);text-shadow:0 0 40px rgba(255,51,51,1)}
 }
 .crisis-degradation-bar{
-  height:6px;background:rgba(255,255,255,.06);border-radius999px;overflow:hidden;
+  height:6px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;
   margin-bottom:8px;
 }
 .crisis-degradation-fill{
@@ -1193,7 +1193,7 @@ canvas.radar-canvas{border-radius:8px}
   border:1px solid currentColor;
 }
 .pos-exp{font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.03em}
-.pos-desc覆{font-size:11px;color:var(--soft);line-height:1.5;margin-bottom:8px}
+.pos-desc{font-size:11px;color:var(--soft);line-height:1.5;margin-bottom:8px}
 .pos-salary{font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:var(--gold)}
 .pos-pressure{
   font-size:10px;color:var(--muted);
@@ -1743,146 +1743,145 @@ footer.auth2-footer {
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script>
-  const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
-  const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+const _sbConfigured = SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON !== 'YOUR_SUPABASE_ANON_KEY';
+const _sb = _sbConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
-  const _sbConfigured = SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON !== 'YOUR_SUPABASE_ANON_KEY';
-  const _sb = _sbConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+const CloudStore = {
+  _session: null,
+  _userId:  null,
 
-  const CloudStore = {
-    _session: null,
-    _userId:  null,
-
-    async init() {
-      if (!_sb) { this._log('Supabase not configured — running offline'); return; }
-      try {
-        const { data: { session } } = await _sb.auth.getSession();
-        if (session) {
-          this._session = session;
-          this._userId  = session.user.id;
-          this._log('Session restored for ' + session.user.email);
-          await this.pullToLocal();
-        }
-        _sb.auth.onAuthStateChange(async (event, session) => {
-          this._session = session;
-          this._userId  = session?.user?.id || null;
-          if (event === 'SIGNED_IN') await this.pullToLocal();
-          if (event === 'SIGNED_OUT') this._userId = null;
-        });
-      } catch(e) { this._log('Init error: ' + e.message); }
-    },
-
-    async register(email, password, displayName) {
-      if (!_sb) return { error: 'Supabase not configured' };
-      try {
-        const { data, error } = await _sb.auth.signUp({ email, password,
-          options: { data: { display_name: displayName } }
-        });
-        if (error) return { error: error.message };
-        this._session = data.session;
-        this._userId  = data.user?.id;
-        if (data.user) {
-          await _sb.from('profiles').from({
-            id: data.user.id,
-            username: email.split('@')[0].toLowerCase(),
-            display_name: displayName,
-            created_at: new Date().toISOString()
-          });
-        }
-        return { ok: true, user: data.user };
-      } catch(e) { return { error: e.message }; }
-    },
-
-    async login(email, password) {
-      if (!_sb) return { error: 'Supabase not configured' };
-      try {
-        const { data, error } = await _sb.auth.signInWithPassword({ email, password });
-        if (error) return { error: error.message };
-        this._session = data.session;
-        this._userId  = data.user.id;
+  async init() {
+    if (!_sb) { this._log('Supabase not configured — running offline'); return; }
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session) {
+        this._session = session;
+        this._userId  = session.user.id;
+        this._log('Session restored for ' + session.user.email);
         await this.pullToLocal();
-        return { ok: true };
-      } catch(e) { return { error: e.message }; }
-    },
+      }
+      _sb.auth.onAuthStateChange(async (event, session) => {
+        this._session = session;
+        this._userId  = session?.user?.id || null;
+        if (event === 'SIGNED_IN') await this.pullToLocal();
+        if (event === 'SIGNED_OUT') this._userId = null;
+      });
+    } catch(e) { this._log('Init error: ' + e.message); }
+  },
 
-    async logout() {
-      if (_sb) await _sb.auth.signOut();
-      this._session = null;
-      this._userId  = null;
-    },
+  async register(email, password, displayName) {
+    if (!_sb) return { error: 'Supabase not configured' };
+    try {
+      const { data, error } = await _sb.auth.signUp({ email, password,
+        options: { data: { display_name: displayName } }
+      });
+      if (error) return { error: error.message };
+      this._session = data.session;
+      this._userId  = data.user?.id;
+      if (data.user) {
+        await _sb.from('profiles').insert({
+          id: data.user.id,
+          username: email.split('@')[0].toLowerCase(),
+          display_name: displayName,
+          created_at: new Date().toISOString()
+        });
+      }
+      return { ok: true, user: data.user };
+    } catch(e) { return { error: e.message }; }
+  },
 
-    async pushSave(db) {
-      if (!_sb || !this._userId) return;
-      try {
-        const user  = db.users?.[db.current];
-        if (!user) return;
-        const gameState = user.game ? JSON.parse(JSON.stringify(user.game)) : null;
-        if (gameState?.history) gameState.history = gameState.history.slice(0, 20);
-        if (gameState?.emails)  gameState.emails  = gameState.emails.slice(0, 6);
-        if (gameState?.raid)    gameState.raid    = gameState.raid.slice(0, 10);
+  async login(email, password) {
+    if (!_sb) return { error: 'Supabase not configured' };
+    try {
+      const { data, error } = await _sb.auth.signInWithPassword({ email, password });
+      if (error) return { error: error.message };
+      this._session = data.session;
+      this._userId  = data.user.id;
+      await this.pullToLocal();
+      return { ok: true };
+    } catch(e) { return { error: e.message }; }
+  },
 
-        await _sb.from('saves').upsert({
-          user_id:       this._userId,
-          username:      db.current,
-          game_state:    gameState,
-          achievements:  user.achievements || {},
-          score:         user.score || 0,
-          level_reached: gameState?.level || 1,
-          saved_at:      new Date().toISOString()
+  async logout() {
+    if (_sb) await _sb.auth.signOut();
+    this._session = null;
+    this._userId  = null;
+  },
+
+  async pushSave(db) {
+    if (!_sb || !this._userId) return;
+    try {
+      const user  = db.users?.[db.current];
+      if (!user) return;
+      const gameState = user.game ? JSON.parse(JSON.stringify(user.game)) : null;
+      if (gameState?.history) gameState.history = gameState.history.slice(0, 20);
+      if (gameState?.emails)  gameState.emails  = gameState.emails.slice(0, 6);
+      if (gameState?.raid)    gameState.raid    = gameState.raid.slice(0, 10);
+
+      await _sb.from('saves').upsert({
+        user_id:       this._userId,
+        username:      db.current,
+        game_state:    gameState,
+        achievements:  user.achievements || {},
+        score:         user.score || 0,
+        level_reached: gameState?.level || 1,
+        saved_at:      new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+      if (gameState && user.score > 0) {
+        await _sb.from('leaderboard').upsert({
+          user_id:    this._userId,
+          username:   user.name || db.current,
+          score:      user.score,
+          level:      gameState.level || 1,
+          industry:   gameState.industry || '',
+          updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
+      }
+    } catch(e) { this._log('Push save error: ' + e.message); }
+  },
 
-        if (gameState && user.score > 0) {
-          await _sb.from('leaderboard').upsert({
-            user_id:    this._userId,
-            username:   user.name || db.current,
-            score:      user.score,
-            level:      gameState.level || 1,
-            industry:   gameState.industry || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' });
-        }
-      } catch(e) { this._log('Push save error: ' + e.message); }
-    },
+  async pullToLocal() {
+    if (!_sb || !this._userId) return;
+    try {
+      const { data, error } = await _sb.from('saves').select('*').eq('user_id', this._userId).single();
+      if (error || !data) return;
+      const local = JSON.parse(localStorage.getItem('deliver_v2__') || '{"users":{},"current":null,"leaderboard":[]}');
+      const uname = data.username;
+      if (!local.users[uname]) local.users[uname] = { history:[], achievements:{} };
+      local.users[uname].game         = data.game_state;
+      local.users[uname].achievements = data.achievements || {};
+      local.users[uname].score        = data.score || 0;
+      local.current = uname;
+      localStorage.setItem('deliver_v2__', JSON.stringify(local));
+      this._log('Cloud save loaded for ' + uname);
+    } catch(e) { this._log('Pull error: ' + e.message); }
+  },
 
-    async pullToLocal() {
-      if (!_sb || !this._userId) return;
-      try {
-        const { data, error } = await _sb.from('saves').select('*').eq('user_id', this._userId).single();
-        if (error || !data) return;
-        const local = JSON.parse(localStorage.getItem('deliver_v2__') || '{"users":{},"current":null,"leaderboard":[]}');
-        const uname = data.username;
-        if (!local.users[uname]) local.users[uname] = { history:[], achievements:{} };
-        local.users[uname].game         = data.game_state;
-        local.users[uname].achievements = data.achievements || {};
-        local.users[uname].score        = data.score || 0;
-        local.current = uname;
-        localStorage.setItem('deliver_v2__', JSON.stringify(local));
-        this._log('Cloud save loaded for ' + uname);
-      } catch(e) { this._log('Pull error: ' + e.message); }
-    },
+  async getLeaderboard(limit = 20) {
+    if (!_sb) return [];
+    try {
+      const { data } = await _sb.from('leaderboard')
+        .select('username, score, level, industry, updated_at')
+        .order('score', { ascending: false })
+        .limit(limit);
+      return data || [];
+    } catch(e) { return []; }
+  },
 
-    async getLeaderboard(limit = 20) {
-      if (!_sb) return [];
-      try {
-        const { data } = await _sb.from('leaderboard')
-          .select('username, score, level, industry, updated_at')
-          .order('score', { ascending: false })
-          .limit(limit);
-        return data || [];
-      } catch(e) { return []; }
-    },
+  isOnline() { return _sbConfigured && !!this._session; },
+  _log(msg) { console.log('[CloudStore]', msg); }
+};
 
-    isOnline() { return _sbConfigured && !!this._session; },
-    _log(msg) { console.log('[CloudStore]', msg); }
-  };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    CloudStore.init();
-  });
-  </script>
+document.addEventListener('DOMContentLoaded', () => {
+  CloudStore.init();
+});
+</script>
 </head>
 <body>
 
@@ -2066,7 +2065,7 @@ footer.auth2-footer {
 
     <div id="setupStep2" style="display:none">
       <div class="between" style="margin-bottom:14px">
-        <p class="section" style="margin:0">Select Industry — 16 Simulated Sectors</p>
+        <p class="section" style="margin:0">Select Industry — Simulated Sectors</p>
         <button class="btn ghost small" onclick="Setup.goStep(1)">← Back</button>
       </div>
       <div id="industryGrid" class="industry-grid-3d" style="margin-bottom:20px"></div>
@@ -2154,6 +2153,40 @@ footer.auth2-footer {
       }">📖 About the Game →</button>
       <button class="btn ghost" onclick="UI.closeModal('aboutModal');UI.openModal('authorModal')">👤 About the Author →</button>
       <button class="btn ghost small" style="margin-top:4px" onclick="UI.closeModal('aboutModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="aboutFullModal" class="modal">
+  <div class="ab2">
+    <div class="wrap">
+      <div class="hero">
+        <span class="hero-logo">DELIVER</span>
+        <p class="hero-tagline">System Specification & Guide</p>
+        <p class="hero-sub">DELIVER is a rigorous simulation mapping the intersection of framework management, organizational politics, corporate performance psychology, and resource metrics under intense institutional execution environments.</p>
+      </div>
+      <div class="section">
+        <p class="section-label">01 / Mechanical Layer</p>
+        <h3 class="section-title">The Nine Live Metrics</h3>
+        <p class="soft">Every executive response scales multi-dimensional variables across global metrics. Falling below thresholds causes cascade failure chains.</p>
+      </div>
+      <button class="btn primary" style="width:100%;margin:20px 0" onclick="UI.closeModal('aboutFullModal')">Return to Simulation</button>
+    </div>
+  </div>
+</div>
+
+<div id="authorModal" class="modal">
+  <div class="auth2">
+    <div class="page">
+      <div class="hero">
+        <span class="eyebrow">Creative Direction</span>
+        <h1>Njung V. Zuh</h1>
+        <p class="subtitle">Architect of Strategic Simulation Networks & Interactive Systems</p>
+      </div>
+      <div class="content">
+        <p>Designed as a critical pedagogical reflection on institutional execution complexity, v5 challenges current process paradigms, shifting priority back toward human alignment and strategic judgment structures.</p>
+        <button class="btn primary" style="width:100%;margin-top:20px" onclick="UI.closeModal('authorModal')">Acknowledge</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2248,7 +2281,707 @@ footer.auth2-footer {
 </div>
 
 <div id="toast" class="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     CORE ENGINE IMPLEMENTATION
+══════════════════════════════════════════════════════ -->
 <script>
 'use strict';
-const Sound={
-  _b64:{click:'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',levelup:'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wN7OnrF+zB7JjsUetv66bqXuw07NrrXuxk7BPszeym7AfsGuz07PzsFuy66+jrEuzM68Tsquxr6znrh+uy6+Lscuxl6xPs7eup63fsaeuy67rrHOyw7Ivs6evE7CjtAuu+7PrsWuso62TrWuyb6yzslOxq7EPsPuwe7LbsZewa7EDssuxp7C/suOxu7DHsaOxz7A3smOwA7InslOxH7H3sluxK7MLshux37DPscuxi7DLsieye7PHskOyR7M7scuxw7AfsR+yl7Ajsvuxu7BHshOwc7NLsj+zI7BPswOyM7CHsr+ww7Dnspuzw7Ars+uxw7MbscOwB7EvszuzN6z3sFuye7Lbs/OxO7Ajs/OyB7NPskOxK7GrsEuxi7HPsYew07MnsZexh7BvsY+xD7EPspeyZ7DbsgOyy7Pbs9uzz7IrsIuyr7PnsWuvF7A3sauyx7C3sguyF7NLsdusZ66zrUOwq7GzsnOye7CHs4Oum61nsbOxE7D/s1uuN7BDtD+wX7Ijszuyu63DrWuwz7C7syOxP7Fzsquwh7P7scOyI7Ijs0+xy7MDsXeyS7CXsceym7A3s++yB7Mvs2+wg7XHsKOw07GzslOxc7DDsaewj7E/sNexp7EzsL+wc7O3speww7C7s9uwi7NTsquws7CHswux67BDscuyC7DPsaexr7DPscuwE7EzsYezP6wnsk+yO7Mvs/Oxd7EfsCeyl7GrsMuzD7FTsiezy7N3sq+yS7A7skuwD7Mvs3eze6/HsBexg7MPrUeyt7EvsyuzH7Cjt9+wh7BbsYuyZ7Crs0OxF7OLsyuxU7FDst+w17MTs8+wh7MTsmewQ7NvsTewY7Ans+uw37Gvsbexv7EXsLuw07GTsdOxr7DjsTOwa7EfsvewV7PDsRuyD7Dnsjuyg7DHssOx27CrsIeyW7FfsUey17FTsD+zh6+rrfext67zr+uz37Insqeu17BLsmOyC7Ofsjuxs6zjsDuyu6xfshux160Poe+Wk5gfoWemc6Tzpaele6V7peunF6TLpguls6TXphulZ6ZvpS+lp6bTp7OlR6RjpdumM6Qvpbunq6V3pdumm6SrpXenC6VLpWulz6Tno9Ofz5unmsuYa5xXnDued6PnnGecU50bn8uYe5gHp0und6gnmKOYt6vPqYOnz6enpOekz6rTrGOnK6b/pv+mY6Qfpie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oWCs0JIAlvCSgJDQujC6MLXQs4CwAKYwqDCmcKGgpeCoMKOApKCjAKJwpDCkoKUgonCt0KMQtLCpYK6AreCosKOAnbCyQMjQrtCy0MTgtzC+QKVgsNC6YKlwscCwsLeAqgCl0KYAo2CigKKAnSCJwIjAgFCeAIPAkqCc0IDglqCJsIoAiUCF0IiAjKCOEIMAlsCZoJnwlMCesJRwouCroJWwlzCSUJ/Ak5CUMJ7gk3C0gKiAoRCl0KCgpdCn0KIgrCCYsJZgl4CS4JeAksCbcIYwg1CEMIVQhfCE4IYAgBCEEHCAg1CEIISAgtCHwIcQhbCCkIvggZCCoIxgiSCJsIhwgyCWkJwAiMCa0JUgn6CcoIsQgfCE0IHggfCHkIbghICLQIUAggCEIIRQgBCEQHBwgiCGYIGgisCHAI/Ac0B/gH9Ac4CGMIiwieCJkIZQiBCF0IQAgyCPsHAwcVByMHCAfkByYIQgi/CGsIPQiNCPQIHAidCDkIhAhPCCQIrAgTCLIHwggjCUsIrghGCAwIrQgXCAEIqgg4CH0IPQiyB7EIHgihCF4IPQgJCDYHCgclCBQIngg6CHkIVggeCBIH8AchB0sIdghZCA0IDwh8CBsIdQgGCLsHQwgdCMwIDghXCPoIGwgXCOgHNwgBCKYIFghPCOUH0wecCH8IxAh9CGwIPQidCJIIdAgjCHkIKgg/CNgI7gj/CCYJEAneCGUJ8glICkYKygg5CY0JGwlUCfMIYQmuCRYJnQjNCPMIFQnFCQYKNAo6CT8JCAnGCPwITgrjCSQJyggTCvEJbgo6CxIL2ApeCr8JNAncCSUJYAnQCUgKCwquCcIJIQk5CS0JowpPClgKJgpNCmcKNgoSCosJBAqbCV4JAAnKCDYJuQkmCaIJAQnoCQoKMAndCVgJuAkyCbsJFAmsCfUJcAnTCTEJZgkWCcgIDgnWCN4InAlwCZ8JvAkbCXoJyQkKCrgJGwnDCRIJKAnVCcwJeAmsCTwJZwnYCVYJDgnVCf8IcAkpCcQIMAmiCRcJvwniCWwJ0gknCcUJzAltCpgK3AkiCdMJIwlTCTgJiAnpCV8J7AllCh0KvAkvCUQJNwloCcAJGglQCacJeAkaCcYJIAmeCQ8JgAnDCY8JKAlVCboJNwlnCZQJDAnGCecJJgllCR8JNAnXCagJagkfCdUJyglrCcYJEAnICfoIHwlqCesJHgluCZcJMAmqCYMJTgmhCTAJcgn1CRYJDAnGCPkIbQkyCbIJEQnHCRQJlgkiCUcJxAkSCZEJCglOCY8JDwlqCZsJDwmCCXMJGwmnCSEJZgkwCUQJZwkWCaEJ+ggBCXsJCgqeCcUJXgmtCRIJoQkaCYEJBQmMCQIJegkfCWQJZgkACboJDQmqCSAJYAn7CQkJWgnvCQMJAQrmCdgJIglcCe8JAwndCSkJYAlDCdwJAwmuCSAJTAnVCewJDAnBCdwJJAllCSEJWAnvCSYJTAnbCSIJ/gkiCUwJhQnjCSYJOAnWCSwJZgkdCTAJNAnFCYkJWAkrCQMJhwnVCeMJUAnhCQ0JeAlhCTAJaAkDCYkJWQkoCSMJAAnBCfIJDwlsCf8JAAnpCSwJUglnCQcJcAkdCUcJtAlXCQIJ6gkeCWQJZgkrCUMJJAnDCSgJZAnpCSQJSAmYCQgJpAnICScJegkkCWYJGAmDCeAJJQlwCQUJYgkeCUEJVAmVCSIJVAnCCRMJXAn0CQsJMwmnCSEJZglKCSQJTAlSCREJPAllCTwJhQkyCW8JNglVCawJHQmdCR0JMwmlCSEJYgksCTgJQAnCCRQJiAn0CSYJQwnnCSsJSgmECQQJhAnGCfAJCAlMCbYJJgmaCQ0JiwmbCQ0JiAmVCQsJlAn7CRkJYAkfCUMJsglKCVIJlgkaCTMJpAkoCVEJggmdCQoJRQmsCRIJhAmoCRkJWglpCRsJKgmxCQoJSQmkCQoJPAllCSAJsglKCVEJngkTCVUJrAkiCVUJkQkUCTAJpAkWCUkJmAkKCUgJkgkXCUgJnQkRCUwJnAkKCVQJnAkOCU0JoAkMCUwJnAkYCTwJnQkQCUsJlgkJCVQJkgkUCUQJjQkQCUwJnAkKCU8JnQkNCVQJiwkJCU8JmAkaCS8JkwkaCSgJyAgXCS4JlAkXCUQJkwkbCTMJmgkZCTcJlAkYCTIJlAkPCUMJmAkVCUcJjgkaCUMJnQkaCUMJngkaCTcJmAkaCTEJlAkfCUEJnAkWCUQJlgkRCSgJjAkNCS0JhAkkCSgJhAkXCSQJhAkcCSMJgwkWCSMJgwkVCSMJgQkWCSQJfQkXCSQJeQkSCSQJdQkRCSQJcAkLCSMJbQkICSEJZQgBCSEJYgf9CB8JXQf3CB8JWQf0CB4JVgfvCB4JVQftCB4JUwfrCB0JUgfoCB0JUQflCBoJUgfkCBoJUwfhCBoJVQfhCBoJVgffCBsJWQfeCBsJWQfeCBoJWQfcCBkJWgfXCBkJXgfaCBcJXgfZCBcJYAffCBgJZAffCBoJZQfcCBoJZQfaCBsJZgfYCBsJYgfaCBkJZQfbCBkJXwfcCBcJXwfeCBcJXgffCBgJZwfcCBgJZwfaCBsJYwfYCBsJYgfXCBgJYgffCBgJZAfaCBkJUwfbCBkJUwfZCBkJTQfcCBkJUQffCBkJRAfgCBkJPwfkCBoJPwflCBoJQwffCBsJPgffCBsJQgfgCBoJQQfeCBoJQQfeCBsJQgfeCBsJQgfeCBoJQQfcCBgJQAfcCBgJQwfcCBoJSgfcCBsJTQfeCBsJSgfeCBoJQwfeCBoJQQfeCBsJBAffCBoJAAfeCBsJAQfdCBsJAgfcCBsJBAfbCBoJAgfYCBoJBAfXCBoJCAfYCBoJCAfXCBoJCQfcCBoJCgfcCBsJDQfeCBsJCwffCBsJBwfeCBsJBwfcCBsJAwffCBsJAQfcCBsJAQfbCBoJAQfYCBoJAQfXCBoJAQfXCBoJAwfVCBsJAwfNCBoJAQfKCBoJBAfGCBoJBwfeCBoJBwfcCBoJBwfYCBoJCQfYCBoJDAfTCBoJDgfRCBsJDgfYCBsJDwfdCBsJDwfeCBsJDQffCBsJDwfeCBsJEAffCBsJEAffCBsJDwfeCBsJDwfdCBsJDQfdCBsJDwfcCBsJEAffCBsJEQfcCBsJEQfTCBsJEQfOCBsJDwfeCBoJDwfcCBoJDwfcCBoJDwfdCBoJDwffCBoJEAffCBoJEAffCBsJEAfdCBsJEgfeCBsJEgfdCBsJEgfdCBsJEgfdCBsJEgfcCBsJEgfaCBsJEgfaCBsJEgfaCBsJEgfaCBsJEgfcCBsJEgfeCBsJEgfeCBsJFAfeCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfYCBsJFAfXCBoJFAfXCBoJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAffCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCBsJFAfcCBsJFAfdCBsJFAfeCBsJFAfeCBsJFAfdCBsJFAfdCBsJFAfdCBsJFAfcCBsJFAfaCBsJFAfaCBsJFAfZCBsJFAfWCBsJFAfWCBsJFAfYCB
+
+// ── Web Audio Synthesis Engine ──
+const Sound = {
+  _ctx: null,
+  _muted: false,
+  init() {
+    if (!this._ctx) {
+      this._ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  },
+  unlock() { this.init(); if(this._ctx && this._ctx.state === 'suspended') this._ctx.resume(); },
+  toggle() { this._muted = !this._muted; UI.toast(this._muted ? 'Sound FX Muted' : 'Sound FX Unmuted'); },
+  play(type) {
+    if (this._muted || !this._ctx) return;
+    try {
+      const osc = this._ctx.createOscillator();
+      const gain = this._ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this._ctx.destination);
+      
+      const now = this._ctx.currentTime;
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+        osc.start(now); osc.stop(now + 0.08);
+      } else if (type === 'save' || type === 'tab') {
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.linearRampToValueAtTime(880, now + 0.15);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now); osc.stop(now + 0.15);
+      } else if (type === 'fail') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.linearRampToValueAtTime(60, now + 0.6);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+        osc.start(now); osc.stop(now + 0.6);
+      } else if (type === 'promo') {
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+        osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
+      }
+    } catch(e) {}
+  }
+};
+
+const Beat = {
+  _ctx: null, _osc: null, _gain: null, _playing: false,
+  toggle() {
+    Sound.unlock();
+    if (this._playing) { this.stop(); UI.toast('Ambient Music Off'); return; }
+    try {
+      this._ctx = Sound._ctx;
+      this._osc = this._ctx.createOscillator();
+      this._gain = this._ctx.createGain();
+      this._osc.type = 'sine';
+      this._osc.frequency.setValueAtTime(65.41, this._ctx.currentTime); // Low C drone
+      this._gain.gain.setValueAtTime(0.04, this._ctx.currentTime);
+      this._osc.connect(this._gain);
+      this._gain.connect(this._ctx.destination);
+      this._osc.start();
+      this._playing = true;
+      UI.toast('Ambient Music On');
+    } catch(e) {}
+  },
+  stop() { if(this._osc) { try{this._osc.stop();}catch(e){} this._osc=null; } this._playing=false; }
+};
+
+// ── Database & State Structures ──
+const DB = {
+  users: {}, current: null,
+  load() {
+    const raw = localStorage.getItem('deliver_v2__');
+    if (raw) {
+      try { const d = JSON.parse(raw); this.users = d.users||{}; this.current = d.current; } catch(e){}
+    }
+  },
+  save() {
+    localStorage.setItem('deliver_v2__', JSON.stringify({ users: this.users, current: this.current }));
+    if (this.current && this.users[this.current]) {
+      CloudStore.pushSave(this);
+    }
+  }
+};
+
+const UI = {
+  screen(id) {
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    const target = document.getElementById(id);
+    if(target) target.classList.add('active');
+    window.scrollTo(0,0);
+  },
+  openModal(id) { 
+    const m = document.getElementById(id); 
+    if(m) m.classList.add('open'); 
+    if(id==='tutorialModal') Sound.unlock();
+  },
+  closeModal(id) { const m = document.getElementById(id); if(m) m.classList.remove('open'); },
+  toast(msg) {
+    const t = document.getElementById('toast');
+    if(!t)return;
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(this._tKey);
+    this._tKey = setTimeout(()=>t.style.style.display='none', 3000);
+  }
+};
+
+// ── Static Master Databases ──
+const Positions = [
+  { lvl:1, title:"Project Coordinator", salary:48000, exp:"0-1 Years", desc:"Track items, write minutes, survive alignment requests.", context:"You sit in a low-rent cubicle chasing task updates via message pings.", pressure:"Low exposure. High friction." },
+  { lvl:2, title:"Assistant PM", salary:65000, exp:"1-3 Years", desc:"Run administrative workflows and smaller delivery tracks.", context:"The primary PM blocks your alignment; you run the shadow sprint cycle.", pressure:"Moderate administrative load." },
+  { lvl:3, title:"Project Manager", salary:88000, exp:"3-5 Years", desc:"Own end-to-end framework delivery loops directly.", context:"You own a cross-functional system engine. Stakeholders know your name now.", pressure:"Standard delivery ownership pressure." },
+  { lvl:4, title:"Senior PM", salary:115000, exp:"5-8 Years", desc:"Fix critical off-track projects under direct oversight.", context:"You are dropped into burning initiatives to stabilize metric baselines.", pressure:"High tracking visibility." },
+  { lvl:5, title:"Program Manager", salary:140000, exp:"8-10 Years", desc:"Coordinate interdependent systems and complex governance.", context:"Multiple dynamic tracks cross your path. Alignment maps directly to you.", pressure:"Escalated systemic complexity." },
+  { lvl:6, title:"Portfolio Manager", salary:168000, exp:"10+ Years", desc:"Optimize asset tracks, risk patterns, and capital buffers.", context:"You treat active deliveries as systemic nodes in a financial value stream.", pressure:"Heavy economic allocation stress." },
+  { lvl:7, title:"Director of Delivery", salary:195000, exp:"Executive", desc:"Protect enterprise margins and high stakeholder visibility.", context:"You control structural frameworks across multiple business lines.", pressure:"Severe corporate exposure profiles." },
+  { lvl:8, title:"VP of Execution", salary:245000, exp:"Executive", desc:"Govern execution frameworks across the entire enterprise stack.", context:"Failure at your layer moves market confidence and executive stability index points.", pressure:"Persistent high-risk exposure." },
+  { lvl:9, title:"VP of Delivery", salary:310000, exp:"Executive", desc:"Formulate long-range delivery strategy and portfolio controls.", context:"You shield execution engines from boardroom politics and shifting macro risks.", pressure:"Extreme alignment volatility." },
+  { lvl:10, title:"Chief Delivery Officer", salary:450000, exp:"C-Suite", desc:"Ultimate execution accountability across the global ecosystem.", context:"You sit directly beside the CEO. Every system shock stops at your desk.", pressure:"Boardroom execution dominance." }
+];
+
+const Industries = [
+  { id:"construction", name:"Mega Infrastructure", icon:"🏗️", skin:"scene-construction", desc:"Heavy engineering tracks. Low margin variance, hard physics dependencies.", mech:"EVM Compliance Mode activated." },
+  { id:"banking", name:"Investment Banking", icon:"🏦", skin:"scene-banking", desc:"Legacy system upgrades. Hyper-regulatory tracking, hostile stakeholders.", mech:"Governance decisions scale x2." },
+  { id:"healthcare", name:"Clinical Software", icon:"🏥", skin:"scene-healthcare", desc:"Zero-fault tolerance architectures. Extreme compliance validation cycles.", mech:"Failsafe rules apply." },
+  { id:"government", name:"Defense Systems", icon:"🏛️", skin:"scene-government", desc:"Deep procurement tracking networks. Massive structural silos.", mech:"Morale decays 1.5x faster." },
+  { id:"energy", name:"Nuclear Energy Grid", icon:"⚛️", skin:"scene-energy", desc:"Critical operations engines. Multi-layered structural safety constraints.", mech:"Risk cascades are terminal." },
+  { id:"airlines", name:"Aviation Logistics", icon:"✈️", skin:"scene-airlines", desc:"Real-time route processing platforms. High concurrency demands.", mech:"Time tracking constraints scale up." },
+  { id:"manufacturing", name:"Automotive Assembly", icon:"🏭", skin:"scene-manufacturing", desc:"Just-In-Time system dependencies. Physical supply chain lock steps.", mech:"Critical Path deviations trigger costs." },
+  { id:"software", name:"SaaS Platform Stack", icon:"💻", skin:"scene-software", desc:"Continuous deployment environments. Hyper-reactive sprint cycles.", mech:"Agile velocity modifications active." }
+];
+
+const Frameworks = [
+  { id:"agile", name:"Pure Agile (Scrum/Less)", desc:"High flexibility loops. Mitigates team burnout index but can irritate legacy stakeholders.", mod:"Morale +10%, Burnout -5%, Stakeholder Variance high." },
+  { id:"waterfall", name:"Predictive Waterfall", desc:"Rigorous structural control. Maximizes stakeholder confidence metrics; highly sensitive to time changes.", mod:"Stakeholder +10%, Budget control +5%, Delivery flexibility lower." }
+];
+
+const Scenarios = [
+  {
+    id: 1, title: "The Critical System Drift", icon: "⚡",
+    body: "A fundamental architectural dependency has drifted off track. Engineering says it requires a complete refactor cycle. Product demands the feature set ship on the original timeline.",
+    politics: "The CTO wants tech debt resolved; the Business Director needs to hit Q3 market targets.",
+    choices: [
+      { id:'A', label:"Approve the Refactor Option", desc:"Take a temporary delay hit to secure long-term platform health.", type:"balanced", effect:{delivery:15, stakeholder:-10, burnout:-10, morale:10, budget:-15, xp:20} },
+      { id:'B', label:"Enforce the Original Timeline", desc:"Cut test automation coverage and push teams to deliver.", type:"aggressive", effect:{delivery:-15, stakeholder:15, burnout:25, morale:-15, budget:5, xp:25} },
+      { id:'C', label:"Defer to Steering Committee", desc:"Draft an escalations paper and pause active development.", type:"passive", effect:{delivery:-5, stakeholder:-15, burnout:-5, morale:5, budget:-5, xp:10} },
+      { id:'D', label:"Implement Scope De-scoping", desc:"Cut secondary features to protect core operational runtime stability.", type:"governance", effect:{delivery:5, stakeholder:5, burnout:5, morale:0, budget:10, xp:20} }
+    ]
+  },
+  {
+    id: 2, title: "The Key Resource Poach", icon: "👤",
+    body: "Your lead systems architect has accepted an offer from a primary competitor. They exit in 48 hours. Knowledge transfer files are out of date.",
+    politics: "HR states budget controls prevent counter-offers. Engineering leadership is panicking.",
+    choices: [
+      { id:'A', label:"Promote Internal Backup Immediately", desc:"Accelerate senior engineer with immediate field responsibilities.", type:"balanced", effect:{delivery:-5, stakeholder:5, burnout:15, morale:10, budget:5, xp:20} },
+      { id:'B', label:"Retain via Contingency Budget Allocation", desc:"Bypass HR policies and deploy contractor emergency funds.", type:"aggressive", effect:{delivery:15, stakeholder:-5, burnout:-10, morale:15, budget:-25, xp:25} },
+      { id:'C', label:"Absorb the Structural Delay Curve", desc:"Re-baseline the tracking timeline and inform downstream delivery streams.", type:"passive", effect:{delivery:-20, stakeholder:-10, burnout:-5, morale:5, budget:0, xp:15} },
+      { id:'D', label:"Onshore Elite Consultant Support", desc:"Engage a high-premium professional services integration squad.", type:"governance", effect:{delivery:10, stakeholder:15, burnout:-10, morale:-5, budget:-35, xp:30} }
+    ]
+  }
+];
+
+// ── Auth Subsystem ──
+const Auth = {
+  toggle(form) {
+    Sound.play('click');
+    document.getElementById('loginTab').className = 'btn ' + (form==='login'?'primary':'ghost');
+    document.getElementById('registerTab').className = 'btn ' + (form==='register'?'primary':'ghost');
+    document.getElementById('loginForm').style.display = form==='login'?'block':'none';
+    document.getElementById('registerForm').style.display = form==='register'?'block':'none';
+  },
+  async login() {
+    const user = document.getElementById('loginUser').value.trim();
+    if(!user) { document.getElementById('loginErr').textContent="Invalid profile handle"; return; }
+    DB.current = user;
+    if(!DB.users[user]) DB.users[user] = { name: user, score: 0, achievements:{}, game: null };
+    DB.save();
+    this.enter();
+  },
+  async register() {
+    const name = document.getElementById('regName').value.trim();
+    const user = document.getElementById('regUser').value.trim();
+    if(!name || !user) { document.getElementById('regErr').textContent="All validation scopes required"; return; }
+    DB.current = user;
+    DB.users[user] = { name: name, score: 0, achievements:{}, game: null };
+    DB.save();
+    this.enter();
+  },
+  enter() {
+    document.getElementById('welcome').textContent = "OPERATOR: " + DB.current.toUpperCase();
+    const state = DB.users[DB.current].game;
+    const resBtn = document.getElementById('resumeBtn');
+    if (state && state.active) {
+      resBtn.removeAttribute('disabled');
+      document.getElementById('resumePanel').innerHTML = `<strong>Active Execution:</strong> Level ${state.level} — ${state.position} inside ${state.industryName}`;
+      document.getElementById('resumePanel').style.display = 'block';
+    } else {
+      resBtn.setAttribute('disabled','true');
+      document.getElementById('resumePanel').style.display = 'none';
+    }
+    UI.screen('menu');
+  },
+  logout() { Sound.play('fail'); DB.current=null; UI.screen('auth'); }
+};
+
+// ── Career Setup Subsystem ──
+const Setup = {
+  _pos: null, _ind: null, _mth: null,
+  render() {
+    const pg = document.getElementById('positionGrid');
+    pg.innerHTML = Positions.map(p => `
+      <div class="position-card ${this._pos===p.lvl?'selected':''}" onclick="Setup.selectPos(${p.lvl})">
+        <span class="pos-icon">📋</span>
+        <div class="pos-title">${p.title}</div>
+        <span class="pos-badge">LVL ${p.lvl}</span>
+        <div class="pos-exp">${p.exp}</div>
+        <div class="pos-salary">$${p.salary.toLocaleString()} / yr</div>
+      </div>
+    `).join('');
+
+    const ig = document.getElementById('industryGrid');
+    ig.innerHTML = Industries.map(i => `
+      <div class="industry-card-3d ${this._ind===i.id?'selected':''}" onclick="Setup.selectInd('${i.id}')">
+        <span class="ind-icon-3d">${i.icon}</span>
+        <div class="ind-name-3d">${i.name}</div>
+        <div class="ind-mechanic-3d">${i.id.toUpperCase()}</div>
+      </div>
+    `).join('');
+
+    const mg = document.getElementById('methodGrid');
+    mg.innerHTML = Frameworks.map(f => `
+      <div class="select-card ${this._mth===f.id?'active':''}" onclick="Setup.selectMth('${f.id}')">
+        <strong>${f.name}</strong>
+        <p>${f.desc}</p>
+        <small style="color:var(--gold); display:block; margin-top:6px">${f.mod}</small>
+      </div>
+    `).join('');
+  },
+  selectPos(lvl) {
+    Sound.play('click'); this._pos = lvl; this.render();
+    const p = Positions.find(x=>x.lvl===lvl);
+    const prev = document.getElementById('positionPreview');
+    prev.style.display = 'block';
+    document.getElementById('posPreviewTitle').textContent = p.title;
+    document.getElementById('posPreviewExp').textContent = p.exp + " · " + p.desc;
+    document.getElementById('posPreviewSalary').textContent = "Base Allocation: $" + p.salary.toLocaleString();
+    document.getElementById('posPreviewContext').textContent = p.context;
+    document.getElementById('posPreviewPressure').textContent = "Exposure Matrix: " + p.pressure;
+    prev.scrollIntoView({behavior:'smooth'});
+  },
+  selectInd(id) {
+    Sound.play('click'); this._ind = id; this.render();
+    const i = Industries.find(x=>x.id===id);
+    const prev = document.getElementById('industryPreview');
+    prev.style.display = 'block';
+    document.getElementById('previewIcon').textContent = i.icon;
+    document.getElementById('previewName').textContent = i.name;
+    document.getElementById('previewDesc').textContent = i.desc;
+    document.getElementById('previewMech').textContent = i.mech;
+    prev.scrollIntoView({behavior:'smooth'});
+  },
+  selectMth(id) {
+    Sound.play('click'); this._mth = id; this.render();
+    document.getElementById('beginBtn').removeAttribute('disabled');
+    const p = Positions.find(x=>x.lvl===this._pos);
+    const i = Industries.find(x=>x.id===this._ind);
+    const f = Frameworks.find(x=>x.id===this._mth);
+    document.getElementById('setupSummary').style.display = 'block';
+    document.getElementById('summaryContent').innerHTML = `
+      <p class="soft" style="font-size:13px; line-height:1.6">
+        Initializing deployment matrix for <strong>${DB.current.toUpperCase()}</strong> as <strong>${p.title}</strong> within the <strong>${i.name}</strong> sector using a <strong>${f.name}</strong> delivery control loop. Terminal operational conditions active.
+      </p>
+    `;
+  },
+  goStep(n) {
+    Sound.play('click');
+    ['Step1','Step2','Step3'].forEach((s, idx) => {
+      document.getElementById('setup'+s).style.display = (idx+1)===n ? 'block':'none';
+      document.getElementById('stepInd'+(idx+1)).className = 'setup-step ' + ((idx+1)===n?'active':(idx+1)<n?'done':'');
+    });
+  }
+};
+
+// ── Game Loop and Execution Engine ──
+const Game = {
+  _state: null,
+  newCareer() {
+    Sound.play('click');
+    Setup._pos = null; Setup._ind = null; Setup._mth = null;
+    document.getElementById('positionPreview').style.display='none';
+    document.getElementById('industryPreview').style.display='none';
+    document.getElementById('setupSummary').style.display='none';
+    document.getElementById('beginBtn').setAttribute('disabled','true');
+    Setup.goStep(1); Setup.render(); UI.screen('setup');
+  },
+  start() {
+    const p = Positions.find(x=>x.lvl===Setup._pos);
+    const i = Industries.find(x=>x.id===Setup._ind);
+    this._state = {
+      active: true, level: p.lvl, position: p.title, salary: p.salary,
+      industry: i.id, industryName: i.name, industryIcon: i.icon, industrySkin: i.skin,
+      framework: Setup._mth, turn: 1, maxTurns: 6, redTurns: 0, xp: 0,
+      metrics: { delivery: 60, stakeholder: 60, burnout: 30, reputation: 40, budget: 100, morale: 60 },
+      raid: [
+        { id:"R-101", type:"Risk", desc:"Integration dependency latency variance", impact:"High", status:"Active" },
+        { id:"A-204", type:"Assumption", desc:"Resource availability profile handles match plan", impact:"Med", status:"Valid" }
+      ],
+      emails: [
+        { from: "System Automation", sub: "Operational Matrix Ready", body: "Your tracking profile handles are linked to the environment core.", type: "unread" }
+      ],
+      history: []
+    };
+    this.syncBadges(); UI.screen('game'); this.initLevel();
+  },
+  resume() {
+    Sound.play('click');
+    this._state = DB.users[DB.current].game;
+    this.syncBadges(); UI.screen('game'); this.renderTabs(); this.loadTab('dashboard');
+  },
+  save() {
+    if(!this._state)return;
+    DB.users[DB.current].game = this._state;
+    DB.save();
+  },
+  exit() { Sound.play('click'); this.save(); Auth.enter(); },
+  syncBadges() {
+    const u = DB.users[DB.current];
+    if(!u.achievements) u.achievements = {};
+    document.getElementById('offlineBadge').style.display = CloudStore.isOnline() ? 'none' : 'inline-block';
+    document.getElementById('cloudBadge').style.display = CloudStore.isOnline() ? 'inline-block' : 'none';
+  },
+  initLevel() {
+    this.save();
+    document.getElementById('lvlNum').textContent = this._state.level;
+    document.getElementById('levelBadge').textContent = "LVL " + this._state.level + " · " + this._state.industryIcon;
+    document.getElementById('roleLine').textContent = this._state.position + " @ " + this._state.industryName.toUpperCase();
+    
+    document.getElementById('levelStartTitle').textContent = `Deployment Assignment: Level ${this._state.level}`;
+    document.getElementById('levelStartContent').innerHTML = `
+      <div class="industry-scene ${this._state.industrySkin}">
+        <div class="scene-env">
+          <span class="scene-main-icon">${this._state.industryIcon}</span>
+          <div class="scene-stats">
+            <strong>Target Node: ${this._state.industryName}</strong>
+            <p class="muted" style="font-size:12px; margin-top:4px">Framework: ${this._state.framework.toUpperCase()}</p>
+          </div>
+        </div>
+      </div>
+      <p class="soft" style="font-size:13px; line-height:1.7">
+        Welcome to your level ${this._state.level} deployment. Your execution bounds are locked at 6 production cycles. Maintain Delivery health above critical error states.
+      </p>
+    `;
+    UI.openModal('levelStartModal');
+    this.renderTabs(); this.loadTab('dashboard');
+    
+    const sc = document.getElementById('scene3d');
+    if(sc) sc.className = this._state.redTurns > 0 ? 'crisis-mode' : 'active';
+  },
+  renderTabs() {
+    const t = document.getElementById('tabs');
+    const items = [
+      { id: 'dashboard', label: '📊 Dashboard', min: 1 },
+      { id: 'inbox', label: '📥 Inbox', min: 1 },
+      { id: 'raid', label: '⚠️ RAID Log', min: 3 },
+      { id: 'evm', label: '📉 EVM Performance', min: 5 },
+      { id: 'boardroom', label: '🏢 Boardroom', min: 7 }
+    ];
+    t.innerHTML = items.map(i => {
+      const lock = this._state.level < i.min;
+      return `<button class="tab ${this._activeTab===i.id?'active':''} ${lock?'locked':''}" 
+        onclick="${lock?'':'Game.loadTab(\''+i.id+'\')'}" ${lock?'disabled':''}>${i.label}</button>`;
+    }).join('');
+  },
+  loadTab(id) {
+    Sound.play('tab'); this._activeTab = id; this.renderTabs();
+    const content = document.getElementById('content');
+    content.className = "content stagger-in";
+    
+    if (id === 'dashboard') {
+      const s = Scenarios[Math.min(this._state.turn - 1, Scenarios.length - 1)] || Scenarios[0];
+      const showCrisis = this._state.metrics.delivery < 40 || this._state.metrics.stakeholder < 40;
+      
+      content.innerHTML = `
+        <div class="situation-layout">
+          <div>
+            <div class="industry-scene ${this._state.industrySkin}">
+              <div class="scene-env">
+                <span class="scene-main-icon ${showCrisis?'crisis-animate':''}">${this._state.industryIcon}</span>
+                <div class="scene-stats">
+                  <div class="scene-stat-row">
+                    <span class="scene-stat-label">Platform Core Realization</span>
+                    <div class="scene-stat-bar"><div class="scene-stat-fill" style="width:${this._state.metrics.delivery}%; background:var(--green)"></div></div>
+                    <span class="scene-stat-val">${this._state.metrics.delivery}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            ${this._state.redTurns > 0 ? `
+              <div class="probation-banner">
+                ⚠️ EXECUTION BREACH WATCH: System baselines are currently degraded. Failure state resolution required within 1 cycle.
+              </div>
+            ` : ''}
+
+            <div class="scenario-card ${showCrisis?'crisis':''}">
+              <div class="scenario-card-header">
+                <span class="scenario-icon">${s.icon}</span>
+                <span class="scenario-turn-badge">CYCLE 0${this._state.turn} / 06</span>
+              </div>
+              <h2 class="scenario-title">${s.title}</h2>
+              <p class="scenario-body">${s.body}</p>
+              <div class="scenario-politics">⚡ <strong>Political Profile:</strong> ${s.politics}</div>
+              
+              <div style="margin-top:16px">
+                <p class="section">Select Operational Action</p>
+                ${s.choices.map(c => `
+                  <button class="choice" onclick="Game.resolveChoice('${c.id}')">
+                    <strong>[Option ${c.id}] — ${c.label}</strong>
+                    <small>${c.desc}</small>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="dashboard-panel">
+              <div class="dashboard-panel-header">
+                <span class="sub"><span class="dashboard-live-dot"></span>Telemetrics</span>
+              </div>
+              ${this.renderMetricRow('Delivery Health', this._state.metrics.delivery, 'var(--green)')}
+              ${this.renderMetricRow('Stakeholder Confidence', this._state.metrics.stakeholder, 'var(--blue)')}
+              ${this.renderMetricRow('Team Burnout Index', this._state.metrics.burnout, 'var(--orange)', true)}
+              ${this.renderMetricRow('Team Morale Matrix', this._state.metrics.morale, 'var(--pink)')}
+              ${this.renderMetricRow('Corporate Reputation', this._state.metrics.reputation, 'var(--violet)')}
+              ${this.renderMetricRow('Budget Realization', this._state.metrics.budget, 'var(--gold)')}
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (id === 'inbox') {
+      content.innerHTML = `
+        <h2 style="font-family:'Syne',sans-serif; margin-bottom:12px">Secure Terminal Mailbox</h2>
+        ${this._state.emails.map(e => `
+          <div class="email ${e.type}">
+            <div class="between" style="margin-bottom:6px">
+              <strong>From: ${e.from}</strong>
+              <span class="pill small">${e.type.toUpperCase()}</span>
+            </div>
+            <div style="font-size:13px; font-weight:700; color:var(--bright); margin-bottom:4px">${e.sub}</div>
+            <p class="soft" style="font-size:12px; line-height:1.5">${e.body}</p>
+          </div>
+        `).join('')}
+      `;
+    } else if (id === 'raid') {
+      content.innerHTML = `
+        <h2 style="font-family:'Syne',sans-serif; margin-bottom:12px">RAID Log Matrix</h2>
+        ${this._state.raid.map(r => `
+          <div class="raid">
+            <div class="between">
+              <strong>[${r.id}] ${r.type}</strong>
+              <span class="pill small">${r.impact} IMPACT</span>
+            </div>
+            <p class="soft" style="font-size:12px; margin-top:6px">${r.desc}</p>
+            <div class="muted" style="font-size:11px; margin-top:4px">Status Layer: ${r.status}</div>
+          </div>
+        `).join('')}
+      `;
+    } else if (id === 'evm') {
+      content.innerHTML = `
+        <h2 style="font-family:'Syne',sans-serif; margin-bottom:12px">Earned Value Telemetry Matrix</h2>
+        <div class="two" style="margin-bottom:14px">
+          <div class="kpi"><strong>1.04</strong><small class="muted">Schedule Performance Index (SPI)</small></div>
+          <div class="kpi"><strong>0.98</strong><small class="muted">Cost Performance Index (CPI)</small></div>
+        </div>
+        <div class="card">
+          <div class="section">EVM Realization Path</div>
+          <p class="soft" style="font-size:12px; line-height:1.6">Tracking profile handle matches theoretical baseline. Variance vector localized at 2.4% structural drift.</p>
+        </div>
+      `;
+    } else if (id === 'boardroom') {
+      content.innerHTML = `
+        <h2 style="font-family:'Syne',sans-serif; margin-bottom:12px">Board Governance Access Layer</h2>
+        <div class="stakeholder-grid">
+          <div class="stakeholder-card trust-high">
+            <div class="stakeholder-header">
+              <div class="avatar-3d" style="background:var(--line2)">CH</div>
+              <div><strong>Dr. C. Hamilton</strong><div class="muted" style="font-size:11px">Chief Technology Officer</div></div>
+            </div>
+            <p class="soft" style="font-size:11px">"Execution health metrics depend on modernizing technical architectural foundations."</p>
+          </div>
+        </div>
+      `;
+    }
+  },
+  renderMetricRow(label, val, col, inverse=false) {
+    const isCritical = inverse ? val > 70 : val < 35;
+    return `
+      <div class="metric-row-anim">
+        <span class="m-label ${isCritical?'danger':''}">${label}</span>
+        <div class="m-bar">
+          <div class="m-fill" style="width:${Math.min(val,100)}%; background:${col}"></div>
+        </div>
+        <span class="m-val">${val}%</span>
+      </div>
+    `;
+  },
+  resolveChoice(cid) {
+    const s = Scenarios[Math.min(this._state.turn - 1, Scenarios.length - 1)] || Scenarios[0];
+    const ch = s.choices.find(c=>c.id===cid);
+    if(!ch)return;
+    
+    Sound.play('click');
+    
+    // Apply deltas
+    for (const k in ch.effect) {
+      if(this._state.metrics[k] !== undefined) {
+        this._state.metrics[k] = Math.max(0, Math.min(100, this._state.metrics[k] + ch.effect[k]));
+      }
+    }
+    
+    this._state.xp += ch.effect.xp || 15;
+    this._state.turn++;
+    
+    // Evaluate operational failure conditions
+    if (this._state.metrics.delivery < 35 && this._state.metrics.stakeholder < 35) {
+      this._state.redTurns++;
+    } else {
+      this._state.redTurns = 0;
+    }
+    
+    if (this._state.redTurns >= 2 || this._state.metrics.budget <= 0) {
+      this.triggerGameOver(false); return;
+    }
+    
+    if (this._state.turn > this._state.maxTurns) {
+      if(this._state.level >= 10) { this.triggerGameOver(true); return; }
+      this.triggerPromotion(); return;
+    }
+    
+    this.loadTab('dashboard');
+  },
+  triggerPromotion() {
+    Sound.play('promo');
+    this._state.level++;
+    const nextPos = Positions.find(x=>x.lvl===this._state.level) || Positions[Positions.length - 1];
+    this._state.position = nextPos.title;
+    this._state.salary = nextPos.salary;
+    this._state.turn = 1;
+    
+    const nextInd = Industries[Math.min(this._state.level - 1, Industries.length - 1)];
+    this._state.industry = nextInd.id;
+    this._state.industryName = nextInd.name;
+    this._state.industryIcon = nextInd.icon;
+    this._state.industrySkin = nextInd.skin;
+
+    document.getElementById('promoPlayerName').textContent = DB.current.toUpperCase();
+    document.getElementById('promoNewTitle').textContent = this._state.position;
+    document.getElementById('promoNarrative').textContent = `Your historical metric compliance index records indicate high suitability for extended oversight responsibility.`;
+    document.getElementById('promoSalary').textContent = `New Strategic Allocation: $${this._state.salary.toLocaleString()} / yr`;
+    
+    UI.openModal('promoModal');
+  },
+  showIndustryReveal() {
+    UI.closeModal('promoModal');
+    document.getElementById('industryCardInner').style.transform = 'rotateY(0deg)';
+    document.getElementById('industryCompanyRow').style.opacity = '0';
+    document.getElementById('industryMechRow').style.opacity = '0';
+    document.getElementById('industryStartBtn').style.opacity = '0';
+    
+    document.getElementById('industryIcon').textContent = this._state.industryIcon;
+    document.getElementById('industryName').textContent = this._state.industryName;
+    document.getElementById('industryDesc').textContent = `Critical systems deployment layer assigned.`;
+    document.getElementById('industryMechBadge').textContent = `MODE: ${this._state.framework.toUpperCase()}`;
+    
+    UI.openModal('industryModal');
+  },
+  flipIndustryCard() {
+    Sound.play('save');
+    document.getElementById('industryCardInner').style.transform = 'rotateY(180deg)';
+    document.getElementById('industryCompanyRow').style.opacity = '1';
+    document.getElementById('industryMechRow').style.opacity = '1';
+    document.getElementById('industryStartBtn').style.opacity = '1';
+    document.getElementById('industryCompany').textContent = "Enterprise Node Layer " + this._state.level + "00";
+  },
+  startNewLevel() {
+    UI.closeModal('industryModal');
+    this.initLevel();
+  },
+  triggerGameOver(win) {
+    Sound.play('fail');
+    const content = document.getElementById('endContent');
+    if (win) {
+      content.innerHTML = `
+        <h2 style="font-family:'Syne',sans-serif; color:var(--gold); margin-bottom:12px">Ecosystem Complete: Ultimate Realization</h2>
+        <p class="soft">You have successfully governed execution arrays up to Chief Delivery Officer. Your name is written into systemic optimization law.</p>
+        <button class="btn primary" style="width:100%; margin-top:20px" onclick="UI.closeModal('endModal'); Auth.enter();">Return to Base</button>
+      `;
+    } else {
+      content.innerHTML = `
+        <h2 style="font-family:'Syne',sans-serif; color:var(--red); margin-bottom:12px">Deployment Severed: Career Terminated</h2>
+        <p class="soft">Metric drift crossed the structural stability limit for too long. HR has revoked your security tokens.</p>
+        <button class="btn red" style="width:100%; margin-top:20px" onclick="UI.closeModal('endModal'); Auth.enter();">Acknowledge Breach</button>
+      `;
+    }
+    this._state.active = false; this.save();
+    UI.openModal('endModal');
+  }
+};
+
+// ── Cinematic Particle Background Loop (Vanilla 2D Canvas) ──
+const Particles = {
+  _el: null, _ctx: null, _items: [],
+  init() {
+    this._el = document.getElementById('particles'); if(!this._el)return;
+    this._ctx = this._el.getContext('2d');
+    window.addEventListener('resize', ()=>this.resize()); this.resize();
+    for(let i=0; i<40; i++) this._items.push({ x:Math.random(), y:Math.random(), s:Math.random()*2+1, d:Math.random() });
+    this.loop();
+  },
+  resize() { this._el.width = window.innerWidth; this._el.height = window.innerHeight; },
+  loop() {
+    if(!this._ctx)return;
+    this._ctx.clearRect(0,0,this._el.width,this._el.height);
+    this._ctx.fillStyle = 'rgba(100,220,255,0.3)';
+    const w = this._el.width, h = this._el.height;
+    this._items.forEach(p => {
+      p.y -= p.s * 0.0005; if(p.y < 0) p.y = 1;
+      this._ctx.fillRect(p.x * w, p.y * h, p.s, p.s);
+    });
+    requestAnimationFrame(()=>this.loop());
+  }
+};
+
+// ── AAA Cinematic Three.js Sublayer ──
+const Scene3D = {
+  _scene: null, _camera: null, _renderer: null, _mesh: null,
+  init() {
+    const container = document.getElementById('scene3d'); if(!container)return;
+    try {
+      this._scene = new THREE.Scene();
+      this._camera = new THREE.Camera();
+      this._camera.position.z = 1;
+      
+      const geo = new THREE.PlaneGeometry(2, 2);
+      const mat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 1.0 } },
+        vertexShader: `void main() { gl_Position = vec4(position, 1.0); }`,
+        fragmentShader: `
+          uniform float time;
+          void main() {
+            vec2 p = gl_FragCoord.xy / vec2(1000.0, 1000.0);
+            float c = sin(p.x * 10.0 + time * 0.2) * cos(p.y * 10.0 + time * 0.2) * 0.04;
+            gl_FragColor = vec4(vec3(c * 0.4, c * 0.7, c * 1.0), 1.0);
+          }
+        `
+      });
+      this._mesh = new THREE.Mesh(geo, mat);
+      this._scene.add(this._mesh);
+      
+      this._renderer = new THREE.WebGLRenderer({ canvas: container, alpha: true });
+      window.addEventListener('resize', ()=>this.resize()); this.resize();
+      this.loop();
+    } catch(e) { console.log("WebGL Sublayer bypass active."); }
+  },
+  resize() { if(this._renderer) this._renderer.setSize(window.innerWidth, window.innerHeight); },
+  loop() {
+    if(!this._renderer)return;
+    if(this._mesh) this._mesh.material.uniforms.time.value += 0.05;
+    this._renderer.render(this._scene, this._camera);
+    requestAnimationFrame(()=>this.loop());
+  }
+};
+
+// Empty Module Placeholders to safely satisfy pre-wired markup dependencies
+const Agent = { cycleMode() {} }; 
+const Render = { profile() {} }; 
+const Leaderboard = { render() {} };
+
+// ── Initialization Hooks ──
+document.addEventListener('DOMContentLoaded', () => {
+  DB.load();
+  Particles.init();
+  Scene3D.init();
+  if(!localStorage.getItem('deliver_tutdone')) {
+    UI.openModal('tutorialModal');
+  }
+});
+</script>
+</body>
+</html>
